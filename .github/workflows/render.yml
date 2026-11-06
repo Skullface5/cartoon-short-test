@@ -94,7 +94,9 @@ jobs:
           : > list.txt
           while read -r f; do printf "file '%s'\n" "$PWD/$f" >> list.txt; done < list_paths.txt
           echo "--- concat list ---"; cat list.txt
-          "$FF" -y -f concat -safe 0 -i list.txt -c copy out/highfive.mp4
+          # re-encode (not -c copy): the per-chunk timestamps come from partial renders, so a stream
+          # copy yields a broken 240 fps / 5.55 s file. Forcing 30 fps gives exactly 150 frames = 5.000 s.
+          "$FF" -y -f concat -safe 0 -i list.txt -r 30 -c:v libx264 -crf 16 -pix_fmt yuv420p out/highfive.mp4
           echo "--- probe ---"
           "$FP" -v error -select_streams v:0 -count_frames \
             -show_entries stream=nb_read_frames,width,height,r_frame_rate,duration -of default=nw=1 out/highfive.mp4

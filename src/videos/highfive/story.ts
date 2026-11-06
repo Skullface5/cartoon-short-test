@@ -362,11 +362,16 @@ SHOTS.push({ id: 1, a: 0, b: TOTAL, light: "day", crowd: "highfive", tau: (t) =>
 for (const k of Object.keys(CAMS)) delete (CAMS as Record<number, Key[] | undefined>)[Number(k)];
 const HF_WIDE: Shot = { pos: [-0.6, D0 + 1.3, -6.6], look: [-0.6, D0 + 1.02, -12.5], fov: 40, roll: 0 };
 const HF_MED: Shot = { pos: [-0.6, D0 + 1.05, -9.3], look: [-0.6, D0 + 1.0, -12.5], fov: 36, roll: -0.03 };
-const HF_TIGHT: Shot = { pos: [-0.6, D0 + 1.0, -9.7], look: [-0.6, D0 + 0.98, -12.5], fov: 36, roll: -0.034 };
+/** the walk-off: the lens tracks with them (a little slower than they walk), so they drift to the right edge
+ *  instead of leaving a tight frame 1.5 s early and playing the last beats on an empty bridge. */
+const HF_TRACK = (f: number): Shot => {
+  const k = smooth(clamp01((f - 60) / 89));
+  return { pos: [-0.6 + 2.6 * k, D0 + 1.02, -9.7 + 1.6 * k], look: [-0.6 + 2.6 * k, D0 + 1.0, -12.5], fov: 36, roll: -0.034 };
+};
 CAMS[1] = [
   { f: 0, s: () => HF_WIDE },
-  { f: 0, dur: 60, s: () => HF_MED },   // the creep arrives ON the high five
-  { f: 60, dur: 90, s: () => HF_TIGHT }, // then a slower creep through the walk-off
+  { f: 0, dur: 60, s: () => HF_MED },    // the creep arrives ON the high five
+  { f: 60, dur: 89, s: HF_TRACK },       // then tracks them as they walk off together
 ];
 
 // one impact kick on the contact (KICKS is keyed in seconds, like the bridge's hammer hits)
