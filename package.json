@@ -1,0 +1,29 @@
+{
+  "name": "cartoon-short-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "npx remotion studio src/index.ts",
+    "stills": "node scripts/hf-stills.mjs out/f_ 10,45,60,90,130 0.5",
+    "render": "npx remotion render src/index.ts TestShort out/highfive.mp4 --codec h264 --crf 16 --scale 1"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^8.18.0",
+    "@react-three/postprocessing": "^2.19.1",
+    "@remotion/bundler": "4.0.484",
+    "@remotion/cli": "4.0.484",
+    "@remotion/renderer": "4.0.484",
+    "@remotion/three": "4.0.484",
+    "postprocessing": "^6.39.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.484",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.169.0",
+    "typescript": "^5.3.0"
+  }
+}
