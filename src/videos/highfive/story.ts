@@ -368,7 +368,7 @@ const HF_MED: Shot = { pos: [-0.6, D0 + 1.05, -9.3], look: [-0.6, D0 + 1.0, -12.
  *  double-ease and stop it matching the actors' positions); at f60 it equals HF_MED, so the cut is invisible. */
 const HF_TRACK = (f: number): Shot => {
   const outK = smooth(clamp01((f / FPS - 2.45) / 2.55)); // OUT0 .. TEND, exactly as cast.ts walks them
-  const dx = 3.2 * outK;
+  const dx = 2.2 * outK;
   return { pos: [-0.6 + dx, D0 + 1.05, -9.3 + 0.6 * outK], look: [-0.6 + dx, D0 + 1.0, -12.5], fov: 36, roll: -0.034 };
 };
 CAMS[1] = [

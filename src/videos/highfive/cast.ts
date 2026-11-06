@@ -436,7 +436,7 @@ const highfiveAt = (cam: CamInfo, t: number, out: Stage) => {
   const raise = smooth(clamp01((t - (HIT - 0.34)) / 0.34)) * (1 - smooth(clamp01((t - (OUT0 - 0.12)) / 0.3)));
 
   // ---- the kid who sits, then stands for the contact (mirrored card: his raised arm reaches LEFT) ----
-  const ax = HF_A[0] + outK * 3.2, aSit = t < HIT - 0.45, aLeaving = t >= OUT0;
+  const ax = HF_A[0] + outK * 2.2, aSit = t < HIT - 0.45, aLeaving = t >= OUT0;
   const aph = q((t - OUT0) * 1.15, 120);
   if (!aLeaving) {
     const afo: FrontOpts = {
@@ -453,17 +453,22 @@ const highfiveAt = (cam: CamInfo, t: number, out: Stage) => {
   }
   blob(out, ax, D0, HF_A[2]);
   // ---- the friend walks in from the left and STOPPED short of the sitter (never walks through him) ----
-  const bx = HF_B[0] - 2.0 + 2.0 * inK + outK * 3.2;
+  const bx = HF_B[0] - 2.0 + 2.0 * inK + outK * 2.2;
   if (t < HIT - 0.2) {
     const view = viewOf(cam, bx, HF_B[2], 1, 0);
     out.places.push(person(cam, { i: 302, o: KID, okey: "kid2hf" }, bx, D0, HF_B[2], view, {},
       { mode: "march", phase: q(t * 1.25 % 1, 120), expr: "smile", stomp: 1, stride: view.fs, blink: lidAt(t, 302) }));
-  } else {
+  } else if (t < OUT0) {
     const bfo: FrontOpts = {
-      mode: "stand", expr: t < OUT0 ? "grin" : "smile",
+      mode: "stand", expr: "grin",
       wave: raise * 0.9, blink: lidAt(t, 302, SWAPS[1]),
     };
     out.places.push(person(cam, { i: 302, o: KID, okey: "kid2hf" }, bx, D0, HF_B[2], { side: false, mirror: false }, bfo, {}));
+  } else {
+    // both walk off together: the friend keeps the profile walk cycle, like the sitter
+    const view = viewOf(cam, bx, HF_B[2], 1, 0);
+    out.places.push(person(cam, { i: 302, o: KID, okey: "kid2hf" }, bx, D0, HF_B[2], view, {},
+      { mode: "march", phase: q((t - OUT0) * 1.15 % 1, 120), expr: "smile", stomp: 0.9, stride: view.fs, blink: lidAt(t, 302, SWAPS[1]) }));
   }
   blob(out, bx, D0, HF_B[2]);
 
