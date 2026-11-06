@@ -94,9 +94,16 @@ jobs:
           : > list.txt
           while read -r f; do printf "file '%s'\n" "$PWD/$f" >> list.txt; done < list_paths.txt
           echo "--- concat list ---"; cat list.txt
-          # re-encode (not -c copy): the per-chunk timestamps come from partial renders, so a stream
-          # copy yields a broken 240 fps / 5.55 s file. Forcing 30 fps gives exactly 150 frames = 5.000 s.
-          "$FF" -y -f concat -safe 0 -i list.txt -r 30 -c:v libx264 -crf 16 -pix_fmt yuv420p out/highfive.mp4
+          # stream-copy the chunks, then rebuild from the decoded frames at a hard 30 fps.
+          # The chunks carry partial-render timestamps, so encoding the concat directly (with or without
+          # -r 30) resamples to 165 frames / 5.549 s instead of 150 / 5.000 s.
+          "$FF" -y -f concat -safe 0 -i list.txt -c copy out/raw.mp4
+          rm -rf frames && mkdir -p frames
+          "$FF" -y -i out/raw.mp4 -fps_mode passthrough frames/f%04d.png 2>/dev/null \
+            || "$FF" -y -i out/raw.mp4 -vsync 0 frames/f%04d.png
+          N=$(ls frames | wc -l); echo "frames extracted: $N"
+          if [ "$N" != "150" ]; then echo "ERROR: expected 150 frames, got $N"; exit 1; fi
+          "$FF" -y -framerate 30 -i frames/f%04d.png -c:v libx264 -crf 16 -pix_fmt yuv420p -r 30 out/highfive.mp4
           echo "--- probe ---"
           "$FP" -v error -select_streams v:0 -count_frames \
             -show_entries stream=nb_read_frames,width,height,r_frame_rate,duration -of default=nw=1 out/highfive.mp4
