@@ -6,7 +6,7 @@ export const FPS = 30;
 export const TOTAL = Math.ceil(VO_TOTAL * FPS);
 export { LINES };
 
-export type SceneId = "ramp" | "detail" | "top" | "sky" | "golden";
+export type SceneId = "ramp" | "panel" | "top" | "sky" | "golden";
 export type Light = "day" | "golden";
 export type Cam = { pos: [number, number, number]; look: [number, number, number]; fov: number; roll?: number };
 
@@ -33,10 +33,10 @@ const DECK2 = C([-4.5, 2.0, -23], [-1.0, 2.2, -34], 46);
 const GREASE = C([-1.6, 1.55, -23.8], [-1.8, 1.25, -30], 42);
 const GREASE2 = C([-3.0, 1.5, -24.2], [-2.4, 1.22, -30], 42);
 
-// DETAIL: down at panel height, close to the airframe - the "leaky bucket" itself
-const DET1 = C([-8, 0.75, -44], [4, 2.2, -48], 38);
-const DET2 = C([-2, 1.1, -45], [6, 1.9, -50], 40);
-const DET3 = C([2, 0.55, -46], [8, 1.6, -52], 36);
+// PANEL: the macro set at (0, 2.2, -46) - plates, seam, rivets and the fuel bead as the subject
+const DET1 = C([-2.6, 2.9, -42.4], [0, 2.2, -46], 40);
+const DET2 = C([0.6, 1.5, -43.6], [0.4, 2.0, -46], 38);
+const DET3 = C([2.4, 2.6, -43.0], [0.6, 2.1, -46], 39);
 
 // TOP: straight down on the planform so the delta reads. The 36 m airframe needs ~90 m to fit 9:16.
 const TOP1 = C([6, 95, -46], [6, 2.35, -52], 44);
@@ -52,13 +52,13 @@ const SKY_BACK = C([125, 52, -95], [6, 26, -58], 46, -0.11);
 export const SHOTS: Shot[] = [
   // L0 hook - the aircraft on the apron, then in to the leaking seam
   S(0, 0, 0, 0.5, "ramp", PARK_WIDE, PARK_MED),
-  S(0, 0.5, 0, 1, "detail", DET1, DET2),
+  S(0, 0.5, 0, 1, "panel", DET1, DET2),
   // L1 the ground crew, then the planform from above
   S(1, 0, 1, 0.55, "ramp", DECK, DECK2),
   S(1, 0.55, 1, 1, "top", TOP1, TOP2),
   // L2 new mechanic vs the foreman, then the skin itself
   S(2, 0, 2, 0.55, "ramp", GREASE, GREASE2),
-  S(2, 0.55, 2, 1, "detail", DET2, DET1),
+  S(2, 0.55, 2, 1, "panel", DET2, DET1),
   // L3 Mach 3.2 - in flight, then the planform again
   S(3, 0, 3, 0.55, "sky", SKY_MED, SKY_TIGHT),
   S(3, 0.55, 3, 1, "top", TOP2, TOP1),
@@ -66,13 +66,13 @@ export const SHOTS: Shot[] = [
   S(4, 0, 4, 0.55, "sky", SKY_WIDE, SKY_MED),
   S(4, 0.55, 4, 1, "ramp", GREASE2, DECK2),
   // L5 nowhere to go - detail, then the wing from below
-  S(5, 0, 5, 0.5, "detail", DET1, DET3),
+  S(5, 0, 5, 0.5, "panel", DET1, DET3),
   S(5, 0.5, 5, 1, "ramp", GREASE, GREASE2),
   // L6 the foreman, unbothered
   S(6, 0, 6, 0.5, "ramp", GREASE2, GREASE),
   S(6, 0.5, 6, 1, "ramp", GREASE, DECK),
   // L7 the tanks weep - detail on the belly
-  S(7, 0, 7, 0.55, "detail", DET3, DET2),
+  S(7, 0, 7, 0.55, "panel", DET3, DET2),
   S(7, 0.55, 7, 1, "ramp", GREASE2, DECK),
   // L8 the match cut: drips on the ramp -> sealed at altitude, at sunset
   S(8, 0, 8, 0.55, "ramp", DECK, PARK_MED),

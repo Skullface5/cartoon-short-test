@@ -85,6 +85,11 @@ const buildJet = (mBody: THREE.Material, mDark: THREE.Material, mGlass: THREE.Ma
     const cone = new THREE.Mesh(new THREE.ConeGeometry(0.34, 1.9, 10), mDark);
     cone.rotation.x = -Math.PI / 2; cone.position.set(3.1 * s, -0.72, -3.9); g.add(cone);
   }
+  // panel lines + a rivet row along the fuselage: the review read the bare model as untextured CAD
+  for (let i = -6; i <= 6; i++) {
+    add(boxGeo(V(-1.42, -0.62, i * 1.9 - 0.045), V(1.42, 0.62, i * 1.9 + 0.045)), mDark);
+  }
+  for (const s2 of [-1, 1]) add(boxGeo(V(1.34 * s2, 0.30, -13), V(1.44 * s2, 0.42, 7)), mDark);
   // vertical fin + rudder line
   add(boxGeo(V(-0.16, 0.2, 8.4), V(0.16, 4.6, 10.6)), mBody);
   add(boxGeo(V(-0.2, 0.2, 8.2), V(0.2, 4.7, 8.45)), mDark);
@@ -100,6 +105,7 @@ export class World {
   private cloudMaps: Record<"day" | "golden", THREE.Texture[]>;
   private plane = new THREE.Group();
   private ground = new THREE.Group();
+  private panel = new THREE.Group();
   private hangar = new THREE.Group();
   private pool = new Pool();
   private actors: Actor[] = []; private fxs: Fx[] = [];
@@ -178,6 +184,38 @@ export class World {
     this.hangar.visible = false;
     R.add(this.hangar);
 
+    // ---- PANEL MACRO SET ----------------------------------------------------------------
+    // The "detail" shots were a close-up of the jet's own skin: an unidentifiable dark slab (reviewed as
+    // "a featureless block sliding over grey ground"). This is a purpose-built macro set instead - two
+    // plates, a real seam between them, rivets and a fuel bead - so the leak is a visible SUBJECT.
+    {
+      const pw = 7.4, ph = 4.2, th = 0.5, gap = 0.22;
+      const plate = lam("sr71plate", () => ({ color: "#9aa3ae" }));
+      const seamM = lam("sr71seam", () => ({ color: "#14161a" }));
+      const rivet = lam("sr71rivet", () => ({ color: "#c6ccd4" }));
+      const bead = lam("sr71bead", () => ({ color: "#e9c46a" }));
+      const g = this.panel;
+      const up = new THREE.Mesh(boxGeo(V(-pw, gap / 2, -th / 2), V(0, gap / 2 + ph, th / 2), 1), plate);
+      const lo = new THREE.Mesh(boxGeo(V(0, -gap / 2 - ph, -th / 2), V(pw, -gap / 2, th / 2), 1), plate);
+      g.add(up, lo);
+      const cav = new THREE.Mesh(boxGeo(V(-pw, -gap / 2, -th / 2 - 0.35), V(pw, gap / 2, -th / 2)), seamM);
+      g.add(cav);                                    // the dark interior seen through the seam
+      for (let i = 0; i < 16; i++) {                 // two rows of rivets hugging the seam
+        const x = -pw + 0.5 + (i / 15) * (2 * pw - 1);
+        for (const [y, r] of [[gap / 2 + 0.34, 0.075], [-gap / 2 - 0.34, 0.075]] as [number, number][]) {
+          const m = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), rivet);
+          m.position.set(x, y, th / 2 - 0.02); g.add(m);
+        }
+      }
+      const drip = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), bead);
+      drip.position.set(0.75, -gap / 2 - 0.16, th / 2 + 0.06); drip.scale.set(1, 1.35, 1); g.add(drip);
+      const hang = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), bead);
+      hang.position.set(0.75, -gap / 2 - 0.72, th / 2 + 0.04); hang.scale.set(0.8, 1.5, 0.8); g.add(hang);
+      g.position.set(0, 2.2, -46);
+      g.visible = false;
+      R.add(g);
+    }
+
     // ---- the aircraft ----
     const body = lam("sr71body", () => ({ color: "#4b535f" }));
     const dark = lam("sr71dark2", () => ({ color: "#2a2f37" }));
@@ -254,9 +292,10 @@ export class World {
 
     // ---- scene dressing ----
     const airborne = scn === "sky" || scn === "golden";
+    this.panel.visible = scn === "panel";
+    this.plane.visible = scn !== "panel";
     this.hangar.visible = scn === "ramp";
-    this.ground.visible = !airborne;   // no tarmac, no props, under the flying shots
-    this.plane.visible = true;
+    this.ground.visible = !airborne && scn !== "panel";   // nothing but the panel in the macro set
 
     if (airborne) {
       // flying: high above the cloud deck, banked, drifting across frame
