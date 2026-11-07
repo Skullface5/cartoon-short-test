@@ -75,6 +75,16 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
     put(FOREMAN, -1.35, -30.5, false, FO("whistle", 0.5 + idle * 0.2, { look: 0.9, headTilt: -9 }));
   }
 
+  // cockpit beats: the pilot in the seat (sit pins the arms to the lap, so no gesture here)
+  if (id === 8 || id === 16) {
+    put(PILOT2, 0, -57.2, false, { expr: "stern", mode: "sit", phase: 0, light: -Math.PI / 2 }, undefined, 1.0);
+  }
+
+  // hangar beats: a figure out on the apron, seen through the open mouth
+  if (id === 13 || id === 14) {
+    put(MECHANIC, -5.5, -98, false, FO("neutral", 0.3 + idle * 0.2, { look: 0.3 }));
+  }
+
   // L11: CTA, waving the aircraft off
   if (id === 24 || id === 25) {
     put(MECHANIC, -2.45, -30.0, false, FO("grin", 0.2 + idle * 0.2, { wave: 0.55 + 0.45 * idle }));

@@ -106,6 +106,8 @@ export class World {
   private plane = new THREE.Group();
   private ground = new THREE.Group();
   private panel = new THREE.Group();
+  private cockpit = new THREE.Group();
+  private mouth!: THREE.Mesh;
   private hangar = new THREE.Group();
   private pool = new Pool();
   private actors: Actor[] = []; private fxs: Fx[] = [];
@@ -181,6 +183,7 @@ export class World {
       new THREE.MeshBasicMaterial({ color: "#15171c" }));
     mouth.position.set(0, HH * 0.41, HZ + HD + 0.06);
     this.hangar.add(mouth);
+    this.mouth = mouth;
     this.hangar.visible = false;
     R.add(this.hangar);
 
@@ -211,9 +214,38 @@ export class World {
       drip.position.set(0.75, -gap / 2 - 0.16, th / 2 + 0.06); drip.scale.set(1, 1.35, 1); g.add(drip);
       const hang = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), bead);
       hang.position.set(0.75, -gap / 2 - 0.72, th / 2 + 0.04); hang.scale.set(0.8, 1.5, 0.8); g.add(hang);
+      // context: a curved fuselage shell behind the plates, so the macro reads as aircraft skin
+      const shell = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, 18, 24), seamM);
+      shell.rotation.x = Math.PI / 2; shell.scale.set(1, 1, 0.55); shell.position.set(0, -3.6, -3.2);
+      g.add(shell);
       g.position.set(0, 2.2, -46);
       g.visible = false;
       R.add(g);
+    }
+
+    // ---- COCKPIT INTERIOR: a location the piece otherwise never visits ----
+    {
+      const c = this.cockpit;
+      const tub = lam("sr71tub", () => ({ color: "#3b424c" }));
+      const panelM = lam("sr71ipanel", () => ({ color: "#22262d" }));
+      const gauge = lam("sr71gauge", () => ({ color: "#8fd0c0" }));
+      const frame = lam("sr71cframe", () => ({ color: "#2f353d" }));
+      c.add(new THREE.Mesh(boxGeo(V(-1.5, 1.35, -60.2), V(1.5, 1.75, -58.9)), panelM));  // instrument panel
+      for (let i = 0; i < 6; i++) {
+        const gm = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.05, 12), gauge);
+        gm.rotation.x = Math.PI / 2; gm.position.set(-0.95 + i * 0.38, 1.5, -58.86); c.add(gm);
+      }
+      c.add(new THREE.Mesh(boxGeo(V(-0.9, 0.9, -57.9), V(0.9, 2.0, -56.6)), tub));       // seat
+      c.add(new THREE.Mesh(boxGeo(V(-1.6, 1.05, -58.0), V(-1.2, 2.3, -56.4)), tub));     // left console
+      c.add(new THREE.Mesh(boxGeo(V(1.2, 1.05, -58.0), V(1.6, 2.3, -56.4)), tub));       // right console
+      for (let i = 0; i < 5; i++) {                                                        // canopy ribs
+        const r = new THREE.Mesh(new THREE.TorusGeometry(1.35 - i * 0.04, 0.06, 6, 14, Math.PI), frame);
+        r.position.set(0, 2.0, -58.4 + i * 0.85); c.add(r);
+      }
+      c.add(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.4, 8), frame).rotateZ(Math.PI / 2).translateZ(0));
+      c.position.set(0, 0, 0);
+      c.visible = false;
+      R.add(c);
     }
 
     // ---- the aircraft ----
@@ -293,9 +325,11 @@ export class World {
     // ---- scene dressing ----
     const airborne = scn === "sky" || scn === "golden";
     this.panel.visible = scn === "panel";
-    this.plane.visible = scn !== "panel";
-    this.hangar.visible = scn === "ramp";
-    this.ground.visible = !airborne && scn !== "panel";   // nothing but the panel in the macro set
+    this.cockpit.visible = scn === "cockpit";
+    this.plane.visible = scn !== "panel" && scn !== "cockpit";
+    this.hangar.visible = scn === "ramp" || scn === "hangar";
+    this.mouth.visible = scn !== "hangar";   // shoot out through an open mouth
+    this.ground.visible = !airborne && scn !== "panel" && scn !== "cockpit";
 
     if (airborne) {
       // flying: high above the cloud deck, banked, drifting across frame
