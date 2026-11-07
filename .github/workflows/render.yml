@@ -103,7 +103,16 @@ jobs:
           N=$(ls frames | wc -l); echo "frames extracted: $N"
           if [ "$N" != "$TOTAL_FRAMES" ]; then echo "ERROR: expected $TOTAL_FRAMES frames, got $N"; exit 1; fi
           "$FF" -y -framerate 30 -i frames/f%04d.png -c:v libx264 -crf 18 -pix_fmt yuv420p -r 30 out/video.mp4
-          # The frame rebuild has no audio track, so mux the verified 60.8 s mix back on.
+          # Guard: -shortest will silently TRUNCATE the video to the audio length, and a stale
+          # public/sr71/audio.mp3 once cost a whole render (77.9 s video cut to 60.8 s). Assert the
+          # mux lengths agree before muxing.
+          ADUR=$("$FP" -v error -show_entries format=duration -of csv=p=0 public/sr71/audio.mp3)
+          awk -v a="$ADUR" -v n="$TOTAL_FRAMES" 'BEGIN{
+            d=n/30; diff=(a-d<0)?(d-a):(a-d);
+            if (diff > 0.30) { printf "ERROR: audio is %.3fs but video is %.3fs - refusing to mux\n", a, d; exit 1 }
+            printf "audio %.3fs matches video %.3fs\n", a, d;
+          }'
+          # The frame rebuild has no audio track, so mux the verified mix back on.
           "$FF" -y -i out/video.mp4 -i public/sr71/audio.mp3 -c:v copy -c:a aac -b:a 192k -shortest out/sr71.mp4
           echo "--- probe ---"
           "$FP" -v error -select_streams v:0 -count_frames \
