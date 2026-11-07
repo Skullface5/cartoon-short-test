@@ -35,11 +35,15 @@ const DECK = C([-6, 2.2, -22], [0, 2.2, -40], 46);
 // Flying shots: the aircraft is ~30 m long and 27 m across, and a 9:16 frame's HORIZONTAL half-angle
 // is only atan(tan(fov/2)*9/16) ~ 12.8 deg, so it needs ~90 m to fit. These sit on the AXIS
 // PERPENDICULAR to the aircraft's long axis, so it is always seen side-on, never head-on.
-const SKY_WIDE = C([-80, 42, -31], [6, 26, -58], 46);
-const SKY_MED = C([-70, 33, -40], [6, 26, -58], 44);
-const SKY_TIGHT = C([-40, 30, -49], [6, 26, -58], 40);
-const SKY_LOW = C([-52, 14, -44], [6, 26, -58], 44);
-const SKY_BACK = C([92, 38, -85], [6, 26, -58], 46);
+// The aircraft is 36 m tip to tail (nose cone -17.6 to tail cone +18.45) and 27 m across. A 9:16 frame's
+// horizontal half-angle is only atan(tan(fov/2)*9/16) ~ 13 deg, so fitting it needs
+// d >= 18/ (tan(fov/2)*9/16) * 1.15 ~ 100 m. Measured at 90 m it still spanned 100% of the frame width.
+// All flying cameras sit 100-130 m out, on the axis PERPENDICULAR to the airframe (side-on, never head-on).
+const SKY_WIDE = C([-118, 58, -20], [6, 26, -58], 46);
+const SKY_MED = C([-104, 46, -24], [6, 26, -58], 44);
+const SKY_TIGHT = C([-89, 38, -29], [6, 26, -58], 44);
+const SKY_LOW = C([-99, 6, -26], [6, 26, -58], 46);
+const SKY_BACK = C([125, 52, -95], [6, 26, -58], 46);
 
 export const SHOTS: Shot[] = [
   // L0 hook: the aircraft on the apron, leaking
@@ -57,8 +61,8 @@ export const SHOTS: Shot[] = [
   S(4, 0, 4, 0.55, "sky", SKY_WIDE, SKY_MED),
   S(4, 0.55, 4, 1, "ramp", C([-3.0, 1.55, -24.2], [-2.4, 1.22, -30], 44), C([-5.0, 3.4, -22], [-1.0, 6.0, -40], 46)),
   // L5 the skin has nowhere to go
-  S(5, 0, 5, 0.5, "sky", SKY_TIGHT, C([-52, 28, -46], [6, 26, -58], 38)),
-  S(5, 0.5, 5, 1, "sky", C([-52, 28, -46], [6, 26, -58], 38), SKY_LOW),
+  S(5, 0, 5, 0.5, "sky", SKY_TIGHT, C([-89, 34, -30], [6, 26, -58], 42)),
+  S(5, 0.5, 5, 1, "sky", C([-89, 34, -30], [6, 26, -58], 42), SKY_LOW),
   // L6 the foreman, unbothered
   S(6, 0, 6, 0.5, "ramp", GREASE_2, GREASE),
   S(6, 0.5, 6, 1, "ramp", GREASE, C([-3.2, 1.55, -24.6], [-2.6, 1.28, -30], 40)),

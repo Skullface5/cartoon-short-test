@@ -99,6 +99,7 @@ export class World {
   private clouds: THREE.Mesh[] = [];
   private cloudMaps: Record<"day" | "golden", THREE.Texture[]>;
   private plane = new THREE.Group();
+  private ground = new THREE.Group();
   private hangar = new THREE.Group();
   private pool = new Pool();
   private actors: Actor[] = []; private fxs: Fx[] = [];
@@ -160,7 +161,8 @@ export class World {
     // taxi line + hold-short bars
     b.add(boxGeo(V(-0.35, 0.012, -170), V(0.35, 0.03, 170)), M.line);
     for (let i = -6; i <= 6; i++) b.add(boxGeo(V(-9, 0.012, i * 9 - 0.4), V(9, 0.03, i * 9 + 0.4)), M.line);
-    b.build(R);
+    b.build(this.ground);
+    R.add(this.ground);
 
     // ---- hangar: a wide shed with a dark mouth, so the ramp shot has a backdrop ----
     const HZ = -150, HW = 46, HH = 17, HD = 34;
@@ -190,7 +192,7 @@ export class World {
       pb.add(new THREE.CylinderGeometry(0.42, 0.42, 1.15, 10), i % 2 ? M.steel : M.dark,
         new THREE.Matrix4().makeTranslation(x, 0.575, z));
     }
-    pb.build(R);
+    pb.build(this.ground);
 
     for (let i = 0; i < 4; i++) for (const s of [-1, 1]) this.actors.push(new Actor(R));
   }
@@ -252,6 +254,7 @@ export class World {
 
     // ---- scene dressing ----
     this.hangar.visible = scn === "ramp";
+    this.ground.visible = scn === "ramp";   // no tarmac under the flying shots
     this.plane.visible = true;
 
     if (scn === "sky") {
