@@ -30,7 +30,8 @@ const PARK_WIDE = C([-8, 10, 6], [6, 5, -52], 46);
 const PARK_MED = C([-2, 6.5, -10], [6, 4.6, -52], 44);
 const GREASE = C([-1.6, 1.55, -23.8], [-1.8, 1.25, -30], 42);
 const GREASE_2 = C([-3.0, 1.5, -24.2], [-2.4, 1.22, -30], 42);
-const BELLY = C([5, 1.0, -36], [6, 1.7, -46], 42);
+const BELLY = C([-14, 1.9, -31], [6, 3.4, -48], 44);
+const BELLY2 = C([-17, 2.3, -28], [6, 3.6, -48], 42);
 const DECK = C([-6, 2.2, -22], [0, 2.2, -40], 46);
 // Flying shots: the aircraft is ~30 m long and 27 m across, and a 9:16 frame's HORIZONTAL half-angle
 // is only atan(tan(fov/2)*9/16) ~ 12.8 deg, so it needs ~90 m to fit. These sit on the AXIS
@@ -67,8 +68,8 @@ export const SHOTS: Shot[] = [
   S(6, 0, 6, 0.5, "ramp", GREASE_2, GREASE),
   S(6, 0.5, 6, 1, "ramp", GREASE, C([-3.2, 1.55, -24.6], [-2.6, 1.28, -30], 40)),
   // L7 the tanks weep
-  S(7, 0, 7, 0.55, "ramp", BELLY, C([5.6, 1.0, -37], [6.2, 1.6, -46], 40)),
-  S(7, 0.55, 7, 1, "ramp", C([5.6, 1.0, -37], [6.2, 1.6, -46], 40), BELLY),
+  S(7, 0, 7, 0.55, "ramp", BELLY, BELLY2),
+  S(7, 0.55, 7, 1, "ramp", BELLY2, BELLY),
   // L8 the match cut: drips on the ramp -> sealed at altitude
   S(8, 0, 8, 0.55, "ramp", DECK, PARK_MED),
   S(8, 0.55, 8, 1, "sky", SKY_LOW, SKY_MED),

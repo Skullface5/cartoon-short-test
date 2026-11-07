@@ -49,6 +49,12 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
     put(MECHANIC, -2.8, -30.6, false, FO("pained", 0.3 + idle * 0.1, { look: 0.5, headTilt: 2 }));
   }
 
+  // L10: close on the airframe, with the crew still in shot
+  if (id === 22 || id === 23) {
+    put(MECHANIC, -2.5, -30.2, false, FO("nervous", 0.3 + idle * 0.2, { look: 0.5 }));
+    put(FOREMAN, -1.35, -30.6, false, FO("neutral", 0.3 + idle * 0.2, { look: 0.4 }));
+  }
+
   // L11: CTA — both of them, waving the aircraft off
   if (id === 24 || id === 25) {
     put(MECHANIC, -2.45, -30.0, false, FO("grin", 0.2 + idle * 0.2, { wave: 0.55 + 0.45 * idle }));

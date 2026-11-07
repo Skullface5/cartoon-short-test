@@ -1,0 +1,130 @@
+name: render-sr71-hf
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/videos/sr71hf/**"
+      - "src/videos/highfive/**"
+      - "src/Root.tsx"
+      - "public/sr71/**"
+      - ".github/workflows/render-hf.yml"
+
+# Render the 1626-frame (54.2 s) SR-71 episode in the High Five style as N parallel chunks, then stitch.
+# A public repo gets 20 concurrent jobs, so 20 chunks is the widest useful fan-out.
+# Rendering happens HERE, never on the laptop (a local render pins the CPU at its 85 C limit).
+env:
+  TOTAL_FRAMES: 1626
+  CHUNKS: 20
+  COMP: Sr71HF
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Browser shared libraries
+        run: |
+          sudo apt-get update -qq || true
+          for p in libnss3 libdbus-1-3 libatk1.0-0 libatk1.0-0t64 libatk-bridge2.0-0 \
+                   libatk-bridge2.0-0t64 libcups2 libcups2t64 libdrm2 libxkbcommon0 \
+                   libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
+                   libcairo2 libasound2 libasound2t64 libx11-xcb1 libxshmfence1 xdg-utils \
+                   fonts-liberation; do
+            sudo apt-get install -y -qq "$p" >/dev/null 2>&1 || true
+          done
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Ensure Remotion browser
+        run: npx remotion browser ensure
+
+      - name: Render chunk ${{ matrix.chunk }}
+        run: |
+          mkdir -p out chunk
+          PER=$(( TOTAL_FRAMES / CHUNKS ))
+          START=$(( ${{ matrix.chunk }} * PER ))
+          END=$(( START + PER - 1 ))
+          if [ "${{ matrix.chunk }}" -eq "$(( CHUNKS - 1 ))" ]; then END=$(( TOTAL_FRAMES - 1 )); fi
+          echo "chunk ${{ matrix.chunk }}: frames $START-$END"
+          npx remotion render src/index.ts "$COMP" "out/chunk_${{ matrix.chunk }}.mp4" \
+            --codec h264 --crf 18 --concurrency 2 --timeout 300000 --frames="$START-$END"
+
+      - name: Upload chunk
+        uses: actions/upload-artifact@v4
+        with:
+          name: chunk-${{ matrix.chunk }}
+          path: out/chunk_${{ matrix.chunk }}.mp4
+          if-no-files-found: error
+          retention-days: 1
+
+  stitch:
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all chunks
+        uses: actions/download-artifact@v4
+        with:
+          pattern: chunk-*
+          path: chunks
+
+      - name: Install ffmpeg
+        run: npm i --no-save --no-audit --no-fund @ffmpeg-installer/ffmpeg @ffprobe-installer/ffprobe
+
+      - name: Concatenate and mux the audio
+        run: |
+          set -e
+          mkdir -p out
+          FF=$(node -e "process.stdout.write(require('@ffmpeg-installer/ffmpeg').path)")
+          FP=$(node -e "process.stdout.write(require('@ffprobe-installer/ffprobe').path)")
+          find chunks -name 'chunk_*.mp4' | sort -t_ -k2 -n > list_paths.txt
+          : > list.txt
+          while read -r f; do printf "file '%s'\n" "$PWD/$f" >> list.txt; done < list_paths.txt
+          echo "--- concat list ---"; cat list.txt
+          # Chunks carry partial-render timestamps, so stream-copy then rebuild from decoded frames
+          # at a hard 30 fps. Never encode the concat directly: it resamples to the wrong frame count.
+          "$FF" -y -f concat -safe 0 -i list.txt -c copy out/raw.mp4
+          rm -rf frames && mkdir -p frames
+          "$FF" -y -i out/raw.mp4 -fps_mode passthrough frames/f%04d.png 2>/dev/null \
+            || "$FF" -y -i out/raw.mp4 -vsync 0 frames/f%04d.png
+          N=$(ls frames | wc -l); echo "frames extracted: $N"
+          if [ "$N" != "$TOTAL_FRAMES" ]; then echo "ERROR: expected $TOTAL_FRAMES frames, got $N"; exit 1; fi
+          "$FF" -y -framerate 30 -i frames/f%04d.png -c:v libx264 -crf 18 -pix_fmt yuv420p -r 30 out/video.mp4
+          # Guard: -shortest will silently TRUNCATE the video to the audio length, and a stale
+          # public/sr71/audio.mp3 once cost a whole render (77.9 s video cut to 60.8 s). Assert the
+          # mux lengths agree before muxing.
+          ADUR=$("$FP" -v error -show_entries format=duration -of csv=p=0 public/sr71/audio.mp3)
+          awk -v a="$ADUR" -v n="$TOTAL_FRAMES" 'BEGIN{
+            d=n/30; diff=(a-d<0)?(d-a):(a-d);
+            if (diff > 0.30) { printf "ERROR: audio is %.3fs but video is %.3fs - refusing to mux\n", a, d; exit 1 }
+            printf "audio %.3fs matches video %.3fs\n", a, d;
+          }'
+          # The frame rebuild has no audio track, so mux the verified mix back on.
+          "$FF" -y -i out/video.mp4 -i public/sr71/audio.mp3 -c:v copy -c:a aac -b:a 192k -shortest out/sr71hf.mp4
+          echo "--- probe ---"
+          "$FP" -v error -select_streams v:0 -count_frames \
+            -show_entries stream=nb_read_frames,width,height,r_frame_rate -of default=nw=1 out/sr71hf.mp4
+          "$FP" -v error -show_entries format=duration -of default=nw=1 out/sr71hf.mp4
+
+      - name: Upload the final mp4
+        uses: actions/upload-artifact@v4
+        with:
+          name: sr71hf-mp4
+          path: out/sr71hf.mp4
+          if-no-files-found: error
+          retention-days: 14
