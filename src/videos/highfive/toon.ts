@@ -17,6 +17,7 @@ export type Build = "adult" | "stout" | "kid";
 export type Outfit = {
   jacket: string; pants: string; boots: string; hat?: string | null; belt?: string | null; buttons?: string; rifle?: boolean;
   sash?: string; sword?: boolean; moustache?: string; skin?: string; head?: number; cap?: string; hair?: string; dress?: string;
+  helmet?: string;
   build?: Build;
 };
 type P2 = [number, number];
@@ -54,6 +55,16 @@ export const RIFLEMAN: Outfit = { jacket: "#357650", pants: "#3d4440", boots: IN
 export const OFFICER: Outfit = { ...RIFLEMAN, hat: "shako_tall", buttons: "#e8c45a", sash: "#c0353a", sword: true, moustache: "#4a3020", rifle: false, belt: null, build: "stout" };
 export const KID: Outfit = { jacket: "#f08a2c", pants: "#3b5b9a", boots: "#f4f1ea", hat: "cap", cap: "#e2453c", build: "kid" };
 export const PARENT: Outfit = { jacket: "#7b5ac9", pants: "#3b3f52", boots: "#5a3b2a", hat: "hair", hair: "#5a3b2a" };
+
+/** ---- SR-71 airfield crew: same flat, heavy-outline drawing as the townsfolk, different wardrobe ---- */
+export const MECHANIC: Outfit = { jacket: "#2f4a6d", pants: "#2f4a6d", boots: "#33333c", hat: "cap", cap: "#20304a" };
+export const FOREMAN: Outfit = { jacket: "#f2a33c", pants: "#3b3f52", boots: "#4a3426", hat: "hardhat", helmet: "#f7d34a" };
+export const PILOT: Outfit = { jacket: "#4a5236", pants: "#4a5236", boots: "#26262b", hat: "cap", cap: "#272d21" };
+export const INSPECTOR: Outfit = { jacket: "#7a3f4a", pants: "#2f3440", boots: "#3a3a42", hat: "hardhat", helmet: "#e6e0d0" };
+const CREW_KIT = [MECHANIC, FOREMAN, PILOT, INSPECTOR];
+export const crew = (v = 0, extra: Partial<Outfit> = {}): Outfit => ({
+  ...CREW_KIT[((v % 4) + 4) % 4], skin: SKINS[v % 4], ...extra,
+});
 export const SKINS = [SKIN, "#f5c9a0", "#ecd0b6", "#c99067"];
 
 export const soldier = (v = 0, extra: Partial<Outfit> = {}): Outfit => {
@@ -377,6 +388,18 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
       const [tx, ty] = R([[cx, yb - ht - 6 * u]])[0];
       p.ell(tx, ty, 7 * u, 7 * u, "#2b7a4b", 2.5 * u); // green tuft
     }
+  } else if (o.hat === "hardhat") {
+    // brim drawn first so the dome overlaps it; both honour the light + the thick ink outline
+    const col = o.helmet ?? "#f7d34a", yb = crown + 0.34 * HH, wb = 42 * u, ht = 0.42 * HH;
+    const [bx, by] = R([[cx + (side ? 8 * u : 0), yb + 3 * u]])[0];
+    p.ell(bx, by, side ? 56 * u : 60 * u, 0.055 * HH, shade(col, 0.8), 2.6 * u, 0, 360, (a * 180) / Math.PI);
+    const dome: P2[] = [];
+    for (let i = 0; i <= 18; i++) { const t = i / 18; dome.push([cx + wb * (2 * t - 1), yb - ht * Math.sin(Math.PI * t)]); }
+    const body = R([...dome, [cx + wb, yb + 5 * u], [cx - wb, yb + 5 * u]]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wb, 0.35);
+    p.poly(body, null, ow);
+    const [rx, ry] = R([[cx, yb - ht]])[0], [rx2, ry2] = R([[cx, yb + 2 * u]])[0];
+    p.stroke([[rx, ry], [rx2, ry2]], 6 * u, mul(col, SH_FELT));   // crown ridge
   } else if (o.hat === "cap" || o.hat === "hair") {
     const cut = crown + (o.hat === "cap" ? 0.3 : 0.42) * HH;
     const keep = (x: number, y: number) => y < cut || (side && o.hat === "hair" && x < cx - 6 * u && y < hc + 0.42 * H.b);

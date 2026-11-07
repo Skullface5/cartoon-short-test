@@ -185,9 +185,16 @@ const lidAt = (t: number, i: number, swaps: number[] = []) => {
 };
 const fkey = (o: object) => JSON.stringify(o, (_k, v) => (typeof v === "number" ? q(v) : v));
 
-type Who = { i: number; o: Outfit; okey: string };
+export type Who = { i: number; o: Outfit; okey: string };
 /** one character drawing in the 600 x 1000 design space, sized by distance, lit from the scene's sun */
-const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: { side: boolean; mirror: boolean }, fo: FrontOpts, so: SideOpts, scale = 1): Place & { tierKey: string } => {
+/** Let a SECOND episode (sr71hf) drive the shared character shader + contact-blob light without going
+ *  through the bridge's stage() dispatcher: LNAME/SUN are module-private and normally set by stage(). */
+export const setLight = (n: "day" | "golden", cam?: CamInfo) => {
+  LNAME = n;
+  if (cam) findSun(cam, SUN);
+};
+
+export const person = (cam: CamInfo, who: Who, x: number, y: number, z: number, view: { side: boolean; mirror: boolean }, fo: FrontOpts, so: SideOpts, scale = 1): Place & { tierKey: string } => {
   const d = cam.pos.distanceTo(tmp.set(x, y + 1.2, z)) / scale;
   const [w, h, k] = tier(d);
   const mirror = view.side && view.mirror, light = light2D(cam, mirror), seed = seedOf(who.i);
@@ -207,7 +214,7 @@ const CONTACT: Record<"day" | "golden", [number, number, number]> = { day: [0.2,
 const TAIL: [number, number, number] = [0.42, 0.44, 0.62];
 const toSrgb = (v: number) => { const c = clamp01(v); return c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055; };
 const hexOf = (c: [number, number, number], k: number) => "#" + c.map((v) => Math.round(255 * toSrgb(1 - (1 - v) * k)).toString(16).padStart(2, "0")).join("");
-const blob = (out: Stage, x: number, y: number, z: number, sc = 1, k = 1) => {
+export const blob = (out: Stage, x: number, y: number, z: number, sc = 1, k = 1) => {
   const hl = Math.hypot(SUN.x, SUN.z) || 1, ox = -SUN.x / hl, oz = -SUN.z / hl, rot = Math.atan2(-ox, -oz);
   if (LNAME === "day") {
     const el = Math.asin(Math.min(0.99, Math.max(0.1, SUN.y)));

@@ -1,0 +1,58 @@
+name: stills
+
+# Verification stills rendered on GitHub runners, never on the laptop: a local remotion still pins
+# the CPU at its 85 C trip. Pick frames, get PNGs back as one artifact, inspect them offline.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/videos/sr71hf/**"
+      - "src/videos/highfive/**"
+      - "src/videos/sr71/**"
+      - ".github/workflows/stills.yml"
+
+env:
+  COMP: Sr71HF
+  FRAMES: "30,120,300,480,760,1000,1300,1560"
+
+jobs:
+  stills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Browser shared libraries
+        run: |
+          sudo apt-get update -qq || true
+          for p in libnss3 libdbus-1-3 libatk1.0-0 libatk1.0-0t64 libatk-bridge2.0-0 \
+                   libatk-bridge2.0-0t64 libcups2 libcups2t64 libdrm2 libxkbcommon0 \
+                   libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
+                   libcairo2 libasound2 libasound2t64 libatspi2.0-0 libatspi2.0-0t64 libxshmfence1; do
+            sudo apt-get install -y -qq --no-install-recommends "$p" || true
+          done
+
+      - run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Render stills
+        run: |
+          mkdir -p stills
+          IFS=',' read -ra FS <<< "$FRAMES"
+          for f in "${FS[@]}"; do
+            echo "--- frame $f"
+            npx remotion still src/index.ts "$COMP" "stills/f$(printf '%04d' "$f").png" \
+              --frame="$f" --scale=0.5 --timeout=300000 --log=error || echo "frame $f FAILED"
+          done
+          ls -la stills
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sr71-stills
+          path: stills/
+          if-no-files-found: warn
