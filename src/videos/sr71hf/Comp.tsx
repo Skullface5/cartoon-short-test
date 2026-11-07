@@ -34,7 +34,7 @@ const Inner: React.FC<{ id: number }> = ({ id }) => {
   const on = useMemo(toggles, []);
   const fx = useMemo(() => ({
     ink: new InkPass(scene, camera as THREE.PerspectiveCamera),
-    lens: new LensBlur({ maxCoC: 24, nearScale: 1.2 }),
+    lens: new LensBlur({ maxCoC: 12, nearScale: 1.2 }),    // 24 was tuned for tight character framings; on wides it turned the frame to mush,
     bloom: makeBloom(),
     tone: new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL }),
     grade: new GradeEffect(GRADES.day, GRADE_STRENGTH.day),
