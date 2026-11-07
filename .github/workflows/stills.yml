@@ -6,10 +6,11 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # broad on purpose: a narrow list silently skipped a run for a src/Root.tsx-only commit,
+    # which is where the composition is registered.
     paths:
-      - "src/videos/sr71hf/**"
-      - "src/videos/highfive/**"
-      - "src/videos/sr71/**"
+      - "src/**"
+      - "public/**"
       - ".github/workflows/stills.yml"
 
 env:
