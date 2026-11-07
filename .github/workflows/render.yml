@@ -1,25 +1,30 @@
-name: render-highfive
+name: render-sr71
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - "src/videos/sr71/**"
+      - "public/sr71/**"
+      - ".github/workflows/render.yml"
 
-# Render the 150-frame short as N parallel chunks, then stitch them.
-# GitHub gives 20 concurrent jobs to a public repo, so this is ~10x wall-clock faster
-# than one serial render (a frame costs ~28 s here, dominated by the scene's per-frame CPU work).
+# Render the 1824-frame (60.8 s) SR-71 short as N parallel chunks, then stitch.
+# A public repo gets 20 concurrent jobs, so 20 chunks is the widest useful fan-out.
+# Rendering happens HERE, never on the laptop (a local render pins the CPU at its 85 C limit).
 env:
-  TOTAL_FRAMES: 150
-  CHUNKS: 10
+  TOTAL_FRAMES: 1824
+  CHUNKS: 20
+  COMP: Sr71Short
 
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
-        chunk: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        chunk: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v4
 
@@ -27,8 +32,6 @@ jobs:
         with:
           node-version: "20"
 
-      # Remotion's Chrome headless shell needs the usual shared libs; install a superset and
-      # ignore the names that do not exist on this Ubuntu release.
       - name: Browser shared libraries
         run: |
           sudo apt-get update -qq || true
@@ -54,8 +57,8 @@ jobs:
           END=$(( START + PER - 1 ))
           if [ "${{ matrix.chunk }}" -eq "$(( CHUNKS - 1 ))" ]; then END=$(( TOTAL_FRAMES - 1 )); fi
           echo "chunk ${{ matrix.chunk }}: frames $START-$END"
-          npx remotion render src/index.ts TestShort "out/chunk_${{ matrix.chunk }}.mp4" \
-            --codec h264 --crf 16 --concurrency 2 --timeout 300000 --frames="$START-$END"
+          npx remotion render src/index.ts "$COMP" "out/chunk_${{ matrix.chunk }}.mp4" \
+            --codec h264 --crf 18 --concurrency 2 --timeout 300000 --frames="$START-$END"
 
       - name: Upload chunk
         uses: actions/upload-artifact@v4
@@ -68,7 +71,7 @@ jobs:
   stitch:
     needs: render
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -79,39 +82,38 @@ jobs:
           path: chunks
 
       - name: Install ffmpeg
-        # apt-get on the runner hangs (the "Install ffmpeg" step was cancelled after 30 min),
-        # so pull a static binary from npm instead — registry fetches are fast and cached.
         run: npm i --no-save --no-audit --no-fund @ffmpeg-installer/ffmpeg @ffprobe-installer/ffprobe
 
-      - name: Concatenate into the final short
+      - name: Concatenate and mux the audio
         run: |
           set -e
           mkdir -p out
           FF=$(node -e "process.stdout.write(require('@ffmpeg-installer/ffmpeg').path)")
           FP=$(node -e "process.stdout.write(require('@ffprobe-installer/ffprobe').path)")
-          echo "ffmpeg: $FF"
           find chunks -name 'chunk_*.mp4' | sort -t_ -k2 -n > list_paths.txt
           : > list.txt
           while read -r f; do printf "file '%s'\n" "$PWD/$f" >> list.txt; done < list_paths.txt
           echo "--- concat list ---"; cat list.txt
-          # stream-copy the chunks, then rebuild from the decoded frames at a hard 30 fps.
-          # The chunks carry partial-render timestamps, so encoding the concat directly (with or without
-          # -r 30) resamples to 165 frames / 5.549 s instead of 150 / 5.000 s.
+          # Chunks carry partial-render timestamps, so stream-copy then rebuild from decoded frames
+          # at a hard 30 fps. Never encode the concat directly: it resamples to the wrong frame count.
           "$FF" -y -f concat -safe 0 -i list.txt -c copy out/raw.mp4
           rm -rf frames && mkdir -p frames
           "$FF" -y -i out/raw.mp4 -fps_mode passthrough frames/f%04d.png 2>/dev/null \
             || "$FF" -y -i out/raw.mp4 -vsync 0 frames/f%04d.png
           N=$(ls frames | wc -l); echo "frames extracted: $N"
-          if [ "$N" != "150" ]; then echo "ERROR: expected 150 frames, got $N"; exit 1; fi
-          "$FF" -y -framerate 30 -i frames/f%04d.png -c:v libx264 -crf 16 -pix_fmt yuv420p -r 30 out/highfive.mp4
+          if [ "$N" != "$TOTAL_FRAMES" ]; then echo "ERROR: expected $TOTAL_FRAMES frames, got $N"; exit 1; fi
+          "$FF" -y -framerate 30 -i frames/f%04d.png -c:v libx264 -crf 18 -pix_fmt yuv420p -r 30 out/video.mp4
+          # The frame rebuild has no audio track, so mux the verified 60.8 s mix back on.
+          "$FF" -y -i out/video.mp4 -i public/sr71/audio.mp3 -c:v copy -c:a aac -b:a 192k -shortest out/sr71.mp4
           echo "--- probe ---"
           "$FP" -v error -select_streams v:0 -count_frames \
-            -show_entries stream=nb_read_frames,width,height,r_frame_rate,duration -of default=nw=1 out/highfive.mp4
+            -show_entries stream=nb_read_frames,width,height,r_frame_rate -of default=nw=1 out/sr71.mp4
+          "$FP" -v error -show_entries format=duration -of default=nw=1 out/sr71.mp4
 
       - name: Upload the final mp4
         uses: actions/upload-artifact@v4
         with:
-          name: highfive-mp4
-          path: out/highfive.mp4
+          name: sr71-mp4
+          path: out/sr71.mp4
           if-no-files-found: error
           retention-days: 14
