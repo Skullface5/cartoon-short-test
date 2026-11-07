@@ -179,9 +179,9 @@ export class World {
     R.add(this.hangar);
 
     // ---- the aircraft ----
-    const body = lam("sr71body", () => ({ color: "#22262c" }));
-    const dark = lam("sr71dark2", () => ({ color: "#111318" }));
-    const glass = lam("sr71glass", () => ({ color: "#55637a" }));
+    const body = lam("sr71body", () => ({ color: "#4b535f" }));
+    const dark = lam("sr71dark2", () => ({ color: "#2a2f37" }));
+    const glass = lam("sr71glass", () => ({ color: "#6d7d96" }));
     this.plane.add(buildJet(body, dark, glass));
     R.add(this.plane);
 

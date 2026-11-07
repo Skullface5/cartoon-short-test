@@ -89,7 +89,13 @@ export const SHOTS: Shot[] = [
   S(11, 0.6, 11, 1, "ramp", GREASE, GREASE2),
 ].map((s, i) => ({ ...s, id: i + 1 }));
 
-export const lightOf = (id: number): Light => SHOTS[id - 1]?.light ?? "day";
+// The scene id "golden" means "airborne at sunset": it must ALSO select the golden light preset, or the
+// sunset shots render with the day sky (they came out blue, measured).
+export const lightOf = (id: number): Light => {
+  const s = SHOTS[id - 1];
+  if (!s) return "day";
+  return s.scene === "golden" ? "golden" : s.light;
+};
 export const sceneOf = (id: number): SceneId => SHOTS[id - 1]?.scene ?? "ramp";
 
 const smooth = (x: number) => { const c = Math.max(0, Math.min(1, x)); return c * c * (3 - 2 * c); };
