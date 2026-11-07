@@ -32,55 +32,59 @@ const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const S = (t0: number, t1: number, env: EnvId, a: Cam, b: Cam): Shot => ({ t0, t1, env, a, b });
 
 export const SHOTS: Shot[] = [
-  // 1 — HOOK: macro seam, bead of fuel (no cast; the panel IS the subject)
-  S(0.0, 2.0, "panelMacro", { pos: [0, 1.0, 3.2], look: [0, 1.0, 0], fov: 30 }, { pos: [0, 1.0, 2.4], look: [0, 1.0, 0], fov: 28 }),
-  S(2.0, 4.03, "panelMacro", { pos: [0.5, 1.15, 2.6], look: [0, 1.0, 0], fov: 30 }, { pos: [0.2, 1.05, 3.4], look: [0, 1.0, 0], fov: 34 }),
-  // 2 — the ramp: two-man crew, framed at 5 m so each figure fills ~59% of frame height
-  S(4.03, 7.0, "rampDeck", { pos: [2.0, 1.75, 9.0], look: [0, 1.3, 3.0], fov: 36 }, { pos: [0.7, 1.65, 8.6], look: [0, 1.3, 3.0], fov: 34 }),
-  S(7.0, 9.496, "rampDeck", { pos: [-1.6, 1.55, 8.4], look: [0, 1.3, 3.0], fov: 36 }, { pos: [-0.6, 1.55, 8.6], look: [0, 1.3, 3.0], fov: 34 }),
-  // 3 — new mechanic vs foreman: the mockery beat. Tight two-shot, actors at x = -/+0.5
-  S(9.496, 13.0, "rampDeck", { pos: [0.3, 1.6, 7.5], look: [0, 1.25, 1.5], fov: 34 }, { pos: [0.5, 1.55, 7.1], look: [0, 1.25, 1.5], fov: 34 }),
-  S(13.0, 16.934, "rampDeck", { pos: [0.5, 1.55, 7.1], look: [0, 1.25, 1.5], fov: 34 }, { pos: [0.1, 1.5, 6.9], look: [0, 1.25, 1.5], fov: 34 }),
-  // 4 — altitude: the skin glowing
-  S(16.934, 19.4, "altitudeSky", { pos: [0, 1.2, 6.0], look: [0, 1.0, 0], fov: 40 }, { pos: [0, 1.15, 4.2], look: [0, 1.0, 0], fov: 38 }),
-  S(19.4, 22.304, "altitudeSky", { pos: [1.6, 1.1, 5.0], look: [0, 1.0, 0], fov: 42 }, { pos: [2.6, 1.05, 6.2], look: [0, 1.0, 0], fov: 40 }),
-  // 5 — the growth
-  S(22.304, 25.2, "altitudeSky", { pos: [0, 1.0, 7.5], look: [0, 1.0, 0], fov: 36 }, { pos: [0, 1.0, 5.6], look: [0, 1.0, 0], fov: 34 }),
-  S(25.2, 27.626, "altitudeSky", { pos: [-1.0, 1.1, 5.2], look: [0, 1.0, 0], fov: 38 }, { pos: [-1.8, 1.05, 4.4], look: [0, 1.0, 0], fov: 36 }),
-  // 6 — fitted tight: it tears
-  S(27.626, 30.6, "panelMacro", { pos: [0, 1.1, 2.2], look: [0, 1.0, 0], fov: 32 }, { pos: [0, 1.05, 1.5], look: [0, 1.0, 0], fov: 30 }),
-  S(30.6, 33.982, "panelMacro", { pos: [0.8, 1.3, 1.6], look: [0, 1.0, 0], fov: 34 }, { pos: [0.3, 1.1, 2.4], look: [0, 1.0, 0], fov: 36 }),
-  // 7 — the unthinkable: every seam left loose
-  S(33.982, 37.0, "hangarApron", { pos: [1.2, 1.65, 8.4], look: [0, 1.25, 2.4], fov: 36 }, { pos: [0.4, 1.55, 8.0], look: [0, 1.25, 2.4], fov: 34 }),
-  S(37.0, 39.256, "hangarApron", { pos: [0.4, 1.55, 8.0], look: [0, 1.25, 2.4], fov: 34 }, { pos: [0.0, 1.5, 8.0], look: [0, 1.25, 2.4], fov: 34 }),
-  // 8 — no sealant: the tanks weep (single mechanic, centred)
-  S(39.256, 42.0, "rampDeck", { pos: [-1.0, 1.3, 6.6], look: [0, 1.15, 1.4], fov: 34 }, { pos: [-0.5, 1.25, 6.4], look: [0, 1.15, 1.4], fov: 34 }),
-  S(42.0, 43.906, "rampDeck", { pos: [1.6, 0.7, 4.0], look: [0, 0.5, 1.4], fov: 40 }, { pos: [0.8, 0.65, 3.6], look: [0, 0.5, 1.4], fov: 38 }),
-  // 9 — the match cut: drips on the ramp -> seals at altitude (same framing, different world)
-  S(43.906, 46.4, "rampDeck", { pos: [0, 1.1, 5.2], look: [0, 0.9, 1.4], fov: 34 }, { pos: [0, 1.05, 4.8], look: [0, 0.9, 1.4], fov: 32 }),
-  S(46.4, 48.85, "altitudeSky", { pos: [0, 1.1, 5.2], look: [0, 0.9, 1.4], fov: 34 }, { pos: [0, 1.05, 4.8], look: [0, 0.9, 1.4], fov: 32 }),
-  // 10 — the payoff climb
-  S(48.85, 51.8, "altitudeSky", { pos: [0, 1.6, 9.0], look: [0, 1.3, 0], fov: 38 }, { pos: [0, 1.8, 13.0], look: [0, 1.3, 0], fov: 36 }),
-  S(51.8, 54.24, "altitudeSky", { pos: [0, 2.0, 15.0], look: [0, 1.4, 0], fov: 34 }, { pos: [0, 2.2, 20.0], look: [0, 1.5, 0], fov: 32 }),
-  // 11 — the kicker
-  S(54.24, 57.19, "panelMacro", { pos: [0, 1.0, 3.0], look: [0, 1.0, 0], fov: 30 }, { pos: [0, 1.0, 2.5], look: [0, 1.0, 0], fov: 29 }),
-  // 12 — CTA: the pair, waving
-  S(57.19, TOTAL + 0.1, "hangarApron", { pos: [0.9, 1.65, 7.4], look: [0, 1.3, 1.6], fov: 34 }, { pos: [0.3, 1.6, 7.2], look: [0, 1.3, 1.6], fov: 34 }),
+  // L0 (0.55) HOOK - macro seam, bead of fuel
+  S(0.0, 2.4, "panelMacro", { pos: [0, 1.0, 3.2], look: [0, 1.0, 0], fov: 30 }, { pos: [0, 1.0, 2.4], look: [0, 1.0, 0], fov: 28 }),
+  S(2.4, 4.331, "panelMacro", { pos: [0.5, 1.15, 2.6], look: [0, 1.0, 0], fov: 30 }, { pos: [0.2, 1.05, 3.4], look: [0, 1.0, 0], fov: 34 }),
+  // L1 (4.331) the ramp, crew
+  S(4.331, 8.0, "rampDeck", { pos: [2.0, 1.75, 9.0], look: [0, 1.3, 3.0], fov: 36 }, { pos: [0.7, 1.65, 8.6], look: [0, 1.3, 3.0], fov: 34 }),
+  S(8.0, 11.502, "rampDeck", { pos: [-1.6, 1.55, 8.4], look: [0, 1.3, 3.0], fov: 36 }, { pos: [-0.6, 1.55, 8.6], look: [0, 1.3, 3.0], fov: 34 }),
+  // L2 (11.502) new mechanic vs foreman
+  S(11.502, 15.0, "rampDeck", { pos: [0.3, 1.6, 7.5], look: [0, 1.25, 1.5], fov: 34 }, { pos: [0.5, 1.55, 7.1], look: [0, 1.25, 1.5], fov: 34 }),
+  S(15.0, 18.643, "rampDeck", { pos: [0.5, 1.55, 7.1], look: [0, 1.25, 1.5], fov: 34 }, { pos: [0.1, 1.5, 6.9], look: [0, 1.25, 1.5], fov: 34 }),
+  // L3 (18.643) Mach 3.2
+  S(18.643, 21.7, "altitudeSky", { pos: [0, 1.2, 6.0], look: [0, 1.0, 0], fov: 40 }, { pos: [0, 1.15, 4.2], look: [0, 1.0, 0], fov: 38 }),
+  S(21.7, 24.774, "altitudeSky", { pos: [1.6, 1.1, 5.0], look: [0, 1.0, 0], fov: 42 }, { pos: [2.6, 1.05, 6.2], look: [0, 1.0, 0], fov: 40 }),
+  // L4 (24.774) titanium grows
+  S(24.774, 27.7, "altitudeSky", { pos: [0, 1.0, 7.5], look: [0, 1.0, 0], fov: 36 }, { pos: [0, 1.0, 5.6], look: [0, 1.0, 0], fov: 34 }),
+  S(27.7, 30.705, "altitudeSky", { pos: [-1.0, 1.1, 5.2], look: [0, 1.0, 0], fov: 38 }, { pos: [-1.8, 1.05, 4.4], look: [0, 1.0, 0], fov: 36 }),
+  // L5 (30.705, 10.2s) fitted tight - it tears: three shots so it never sits still
+  S(30.705, 34.3, "panelMacro", { pos: [0, 1.1, 2.2], look: [0, 1.0, 0], fov: 32 }, { pos: [0, 1.05, 1.5], look: [0, 1.0, 0], fov: 30 }),
+  S(34.3, 37.8, "panelMacro", { pos: [0.8, 1.3, 1.6], look: [0, 1.0, 0], fov: 34 }, { pos: [0.3, 1.1, 2.4], look: [0, 1.0, 0], fov: 36 }),
+  S(37.8, 41.406, "altitudeSky", { pos: [0.5, 1.15, 4.6], look: [0, 1.0, 0], fov: 36 }, { pos: [-0.5, 1.05, 5.6], look: [0, 1.0, 0], fov: 38 }),
+  // L6 (41.406) every seam left loose
+  S(41.406, 43.8, "hangarApron", { pos: [1.2, 1.65, 8.4], look: [0, 1.25, 2.4], fov: 36 }, { pos: [0.4, 1.55, 8.0], look: [0, 1.25, 2.4], fov: 34 }),
+  S(43.8, 46.195, "hangarApron", { pos: [0.4, 1.55, 8.0], look: [0, 1.25, 2.4], fov: 34 }, { pos: [0.0, 1.5, 8.0], look: [0, 1.25, 2.4], fov: 34 }),
+  // L7 (46.195) the tanks weep
+  S(46.195, 48.9, "rampDeck", { pos: [-1.0, 1.3, 6.6], look: [0, 1.15, 1.4], fov: 34 }, { pos: [-0.5, 1.25, 6.4], look: [0, 1.15, 1.4], fov: 34 }),
+  S(48.9, 51.646, "rampDeck", { pos: [1.6, 0.7, 4.0], look: [0, 0.5, 1.4], fov: 40 }, { pos: [0.8, 0.65, 3.6], look: [0, 0.5, 1.4], fov: 38 }),
+  // L8 (51.646) the match cut
+  S(51.646, 54.9, "rampDeck", { pos: [0, 1.1, 5.2], look: [0, 0.9, 1.4], fov: 34 }, { pos: [0, 1.05, 4.8], look: [0, 0.9, 1.4], fov: 32 }),
+  S(54.9, 58.337, "altitudeSky", { pos: [0, 1.1, 5.2], look: [0, 0.9, 1.4], fov: 34 }, { pos: [0, 1.05, 4.8], look: [0, 0.9, 1.4], fov: 32 }),
+  // L9 (58.337, 8.6s) the payoff
+  S(58.337, 61.3, "altitudeSky", { pos: [0, 1.6, 9.0], look: [0, 1.3, 0], fov: 38 }, { pos: [0, 1.8, 12.0], look: [0, 1.3, 0], fov: 36 }),
+  S(61.3, 64.3, "altitudeSky", { pos: [0, 2.0, 15.0], look: [0, 1.4, 0], fov: 34 }, { pos: [0, 2.2, 19.0], look: [0, 1.5, 0], fov: 32 }),
+  S(64.3, 67.376, "altitudeSky", { pos: [-1.2, 2.1, 17.0], look: [0, 1.45, 0], fov: 34 }, { pos: [1.0, 2.1, 15.5], look: [0, 1.45, 0], fov: 33 }),
+  // L10 (67.376) the kicker
+  S(67.376, 70.4, "panelMacro", { pos: [0, 1.0, 3.0], look: [0, 1.0, 0], fov: 30 }, { pos: [0, 1.0, 2.5], look: [0, 1.0, 0], fov: 29 }),
+  S(70.4, 73.427, "panelMacro", { pos: [0.6, 1.1, 2.2], look: [0, 1.0, 0], fov: 32 }, { pos: [-0.3, 1.05, 2.8], look: [0, 1.0, 0], fov: 33 }),
+  // L11 (73.427) CTA
+  S(73.427, 75.7, "hangarApron", { pos: [0.9, 1.65, 7.4], look: [0, 1.3, 1.6], fov: 34 }, { pos: [0.3, 1.6, 7.2], look: [0, 1.3, 1.6], fov: 34 }),
+  S(75.7, TOTAL + 0.1, "hangarApron", { pos: [0.3, 1.6, 7.2], look: [0, 1.3, 1.6], fov: 34 }, { pos: [0.0, 1.55, 7.0], look: [0, 1.3, 1.6], fov: 33 }),
 ];
 
 
 /** Cast placed in WORLD space, so the camera moves carry them. Positions match each shot's framing. */
 type Act = { t0: number; t1: number; spec: ActorSpec; pos: [number, number, number]; height?: number };
 const ACTS: Act[] = [
-  { t0: 4.03, t1: 9.496, spec: { who: "crew", expr: "stern", face: 1, pose: "clamp", walk: 1 }, pos: [-0.42, 0, 3.0], height: 1.8 },
-  { t0: 4.03, t1: 9.496, spec: { who: "crew", expr: "neutral", face: -1, pose: "idle", walk: 1 }, pos: [0.42, 0, 3.0], height: 1.78 },
-  { t0: 9.496, t1: 16.934, spec: { who: "mechanic", expr: "shock", face: 1, pose: "point" }, pos: [-0.42, 0, 1.5] },
-  { t0: 9.496, t1: 16.934, spec: { who: "foreman", expr: "smug", face: -1, pose: "clipboard" }, pos: [0.42, 0, 1.5] },
-  { t0: 33.982, t1: 39.256, spec: { who: "foreman", expr: "stern", face: 1, pose: "point" }, pos: [-0.42, 0, 2.4] },
-  { t0: 33.982, t1: 39.256, spec: { who: "crew", expr: "awe", face: -1, pose: "lookUp" }, pos: [0.42, 0, 2.4], height: 1.75 },
-  { t0: 39.256, t1: 48.85, spec: { who: "mechanic", expr: "sad", face: 1, pose: "idle" }, pos: [0, 0, 1.4] },
-  { t0: 57.19, t1: TOTAL + 0.2, spec: { who: "mechanic", expr: "grin", face: 1, pose: "wave" }, pos: [-0.42, 0, 1.6] },
-  { t0: 57.19, t1: TOTAL + 0.2, spec: { who: "crew", expr: "grin", face: -1, pose: "wave" }, pos: [0.42, 0, 1.6], height: 1.76 },
+  { t0: 4.331, t1: 11.502, spec: { who: "crew", expr: "stern", face: 1, pose: "clamp", walk: 1 }, pos: [-0.42, 0, 3.0], height: 1.8 },
+  { t0: 4.331, t1: 11.502, spec: { who: "crew", expr: "neutral", face: -1, pose: "idle", walk: 1 }, pos: [0.42, 0, 3.0], height: 1.78 },
+  { t0: 11.502, t1: 18.643, spec: { who: "mechanic", expr: "shock", face: 1, pose: "point" }, pos: [-0.42, 0, 1.5] },
+  { t0: 11.502, t1: 18.643, spec: { who: "foreman", expr: "smug", face: -1, pose: "clipboard" }, pos: [0.42, 0, 1.5] },
+  { t0: 41.406, t1: 46.195, spec: { who: "foreman", expr: "stern", face: 1, pose: "point" }, pos: [-0.42, 0, 2.4] },
+  { t0: 41.406, t1: 46.195, spec: { who: "crew", expr: "awe", face: -1, pose: "lookUp" }, pos: [0.42, 0, 2.4], height: 1.75 },
+  { t0: 46.195, t1: 54.9, spec: { who: "mechanic", expr: "sad", face: 1, pose: "idle" }, pos: [0, 0, 1.4] },
+  { t0: 73.427, t1: TOTAL + 0.2, spec: { who: "mechanic", expr: "grin", face: 1, pose: "wave" }, pos: [-0.42, 0, 1.6] },
+  { t0: 73.427, t1: TOTAL + 0.2, spec: { who: "crew", expr: "grin", face: -1, pose: "wave" }, pos: [0.42, 0, 1.6], height: 1.76 },
 ];
 
 const shotAt = (t: number) => SHOTS.find((s) => t >= s.t0 && t < s.t1) ?? SHOTS[SHOTS.length - 1];

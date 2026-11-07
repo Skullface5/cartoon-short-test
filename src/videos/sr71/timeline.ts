@@ -1,22 +1,22 @@
-// AUTO-GENERATED from the measured VO durations (edge-tts, en-US-GuyNeural, +40%).
-// Do not hand-edit the numbers: regenerate so the cuts stay locked to the real speech.
+// AUTO-GENERATED from the measured Gemini-TTS VO durations.
+// Do not hand-edit: regenerate so the cuts stay locked to the real speech.
 
 export interface Line { i: number; text: string; start: number; end: number; }
 
-export const TOTAL = 60.814;
+export const TOTAL = 77.938;
 export const FPS = 30;
 
 export const LINES: Line[] = [
-  { i: 0, start: 0.6, end: 3.48, text: 'This plane leaks fuel. On purpose.' },
-  { i: 1, start: 4.03, end: 9.046, text: 'The base called it a leaky bucket. Thirty-four million dollars of titanium that couldn\'t hold fuel.' },
-  { i: 2, start: 9.496, end: 16.384, text: 'A new mechanic calls it a defect. The foreman doesn\'t look up. They\'re all like that, kid. You built it that way.' },
-  { i: 3, start: 16.934, end: 21.854, text: 'At Mach 3.2 the airframe hits six hundred and twenty degrees. Hot enough to cook on.' },
-  { i: 4, start: 22.304, end: 27.176, text: 'Titanium grows when it\'s that hot. This fuselage stretches four inches, nose to tail.' },
-  { i: 5, start: 27.626, end: 33.482, text: 'Fitted tight, that growth has nowhere to go. The skin buckles. The frame tears apart in the air.' },
-  { i: 6, start: 33.982, end: 38.806, text: 'So they did the unthinkable. Every seam was left loose, filled with nothing that survives heat.' },
-  { i: 7, start: 39.256, end: 43.456, text: 'No sealant could take that cycle. So they stopped pretending. The tanks were allowed to weep.' },
-  { i: 8, start: 43.906, end: 48.85, text: 'On the ramp it drips. At eighty thousand feet the metal swells, and the plane seals itself shut.' },
-  { i: 9, start: 49.3, end: 53.74, text: 'The leak was never a bug. It was the price of the fastest aircraft ever built, and the reason it came home. Every time.' },
-  { i: 10, start: 54.24, end: 56.64, text: 'The thing that looks broken on the ground is usually the thing that saves it in the air.' },
-  { i: 11, start: 57.19, end: 59.614, text: 'Follow, for the machines built to look wrong.' },
+  { i: 0, start: 0.55, end: 3.881, text: 'This plane leaks fuel. On purpose.' },
+  { i: 1, start: 4.331, end: 11.102, text: 'They called it the leaky bucket. Thirty-four million in titanium that couldn\'t hold fuel.' },
+  { i: 2, start: 11.502, end: 18.193, text: 'A new mechanic calls it a defect. The foreman doesn\'t look up. They\'re all like that, kid.' },
+  { i: 3, start: 18.643, end: 24.374, text: 'At Mach 3.2 the airframe hits six hundred degrees.' },
+  { i: 4, start: 24.774, end: 30.305, text: 'Titanium grows when it\'s hot. Four inches, nose to tail.' },
+  { i: 5, start: 30.705, end: 40.956, text: 'Fitted tight, that growth has nowhere to go. The skin buckles. The frame tears apart.' },
+  { i: 6, start: 41.406, end: 45.795, text: 'So they did the unthinkable. Every seam left loose.' },
+  { i: 7, start: 46.195, end: 51.246, text: 'No sealant survives that cycle. So they let the tanks weep.' },
+  { i: 8, start: 51.646, end: 57.937, text: 'On the ramp it drips. At altitude the metal swells, and the plane seals shut.' },
+  { i: 9, start: 58.337, end: 66.926, text: 'The leak was never a bug. It\'s why the fastest aircraft ever built came home. Every time.' },
+  { i: 10, start: 67.376, end: 73.027, text: 'What looks broken on the ground is usually what saves you in the air.' },
+  { i: 11, start: 73.427, end: 76.838, text: 'Follow, for the machines built to look wrong.' },
 ];
