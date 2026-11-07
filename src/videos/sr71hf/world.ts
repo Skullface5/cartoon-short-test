@@ -253,11 +253,12 @@ export class World {
     }
 
     // ---- scene dressing ----
+    const airborne = scn === "sky" || scn === "golden";
     this.hangar.visible = scn === "ramp";
-    this.ground.visible = scn === "ramp";   // no tarmac under the flying shots
+    this.ground.visible = !airborne;   // no tarmac, no props, under the flying shots
     this.plane.visible = true;
 
-    if (scn === "sky") {
+    if (airborne) {
       // flying: high above the cloud deck, banked, drifting across frame
       this.plane.position.set(6 - ((t * 1.35) % 6), 26 + Math.sin(t * 0.5) * 1.1, -58);
       this.plane.rotation.set(0.045, Math.PI + 0.30 + Math.sin(t * 0.23) * 0.05, -0.075 + Math.sin(t * 0.31) * 0.02);

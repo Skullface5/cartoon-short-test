@@ -1,4 +1,4 @@
-// SR-71 episode cast: same drawn characters as the High Five (toon.ts Pen engine), staged with the
+// SR-71 episode cast: the same drawn characters as the High Five (toon.ts Pen engine), staged with the
 // template's own person()/blob() contracts so the shared character shader and contact shadows apply.
 import { person, blob, setLight, type Who, type Stage, type CamInfo } from "../highfive/cast";
 import { crew, type FrontOpts, type SideOpts } from "../highfive/toon";
@@ -14,8 +14,8 @@ const FO = (expr: FrontOpts["expr"], phase = 0, extra: Partial<FrontOpts> = {}):
 const SO = (expr: SideOpts["expr"], phase = 0, extra: Partial<SideOpts> = {}): SideOpts =>
   ({ expr, mode: "stand", phase, ...extra });
 
-/** stage the crew for shot `id`. Line beats: 1=ramp today, 2=mechanic vs foreman, 6=the foreman,
- *  7=the mechanic at the belly, 11=cta. Everything else is an empty (aircraft-only) shot. */
+/** Stage the crew for shot `id`. Shots 4 (planform), 6/11/15/16 (macro detail), 8, 12, 18-21 (flying)
+ *  are aircraft-only inserts by design. */
 export const stage = (id: number, t: number, cam: CamInfo): Stage => {
   const out: Stage = { places: [], fx: [] };
   setLight("day", cam);
@@ -26,36 +26,56 @@ export const stage = (id: number, t: number, cam: CamInfo): Stage => {
   };
   const idle = Math.sin(t * 1.7) * 0.5 + 0.5;
 
-  // L1: two of the ground crew on the ramp, walking past the jet
-  if (id === 3 || id === 4) {
-    put(MECHANIC, -3.1 + idle * 0.25, -29.6, false, FO("neutral", t * 0.9), SO("neutral", t * 0.9));
-    put(FOREMAN, 0.9, -30.6, false, FO("stern", t * 0.9 + 1.2), SO("stern", t * 0.9 + 1.2));
+  // L1: the ground crew walking the ramp past the jet
+  if (id === 3) {
+    // profile + march cycle: a walking character reads as alive, a static one reads as a cut-out puppet
+    put(MECHANIC, -3.1 + ((t * 0.55) % 1.2), -29.6, true, FO("neutral", t * 2.2),
+      { expr: "neutral", mode: "march", phase: t * 2.2, stride: 1 });
+    put(FOREMAN, 0.9, -30.6, true, FO("stern", t * 2.2 + 1.2),
+      { expr: "stern", mode: "march", phase: t * 2.2 + 1.2, stride: 1 });
   }
 
   // L2: the new mechanic vs the foreman who has seen it all
-  if (id === 5 || id === 6) {
+  if (id === 5) {
     put(MECHANIC, -2.45, -30.0, false, FO("shock", 0.2 + idle * 0.15, { look: 0.6, headTilt: -3 }));
     put(FOREMAN, -1.35, -30.4, false, FO("smile_closed", 0.2 + idle * 0.15, { look: -0.4 }));
   }
 
-  // L6: the foreman, unbothered, hands behind his back
+  // L4b: cut back to the crew while the jet crosses overhead
+  if (id === 10) {
+    put(MECHANIC, -2.6, -30.0, false, FO("whistle", 0.3 + idle * 0.2, { look: 0.9, headTilt: -8 }));
+    put(FOREMAN, -1.4, -30.4, false, FO("whistle", 0.3 + idle * 0.2, { look: 0.9, headTilt: -8 }));
+  }
+
+  // L6: the foreman, unbothered
   if (id === 13 || id === 14) {
     put(FOREMAN, -2.45, -30.2, false, FO("stern", 0.4 + idle * 0.2, { look: -0.2 }));
     put(PILOT2, -1.35, -30.9, false, FO("neutral", 0.4 + idle * 0.2, { look: -0.7 }));
   }
 
-  // L7: the mechanic beside the weeping belly
-  if (id === 15 || id === 16) {
-    put(MECHANIC, -2.8, -30.6, false, FO("pained", 0.3 + idle * 0.1, { look: 0.5, headTilt: 2 }));
+  // L8: back on the ramp as the drips come off it
+  if (id === 17) {
+    put(MECHANIC, -2.5, -30.2, false, FO("pained", 0.3 + idle * 0.15, { look: 0.5, headTilt: 2 }));
+    put(FOREMAN, -1.35, -30.5, false, FO("neutral", 0.3 + idle * 0.15, { look: 0.4 }));
   }
 
-  // L10: close on the airframe, with the crew still in shot
-  if (id === 22 || id === 23) {
+  // L10: hands-on, close to the airframe
+  if (id === 22) {
     put(MECHANIC, -2.5, -30.2, false, FO("nervous", 0.3 + idle * 0.2, { look: 0.5 }));
     put(FOREMAN, -1.35, -30.6, false, FO("neutral", 0.3 + idle * 0.2, { look: 0.4 }));
   }
 
-  // L11: CTA — both of them, waving the aircraft off
+  // L5b / L7b / L9b: crew beats cut into the aircraft runs
+  if (id === 12 || id === 16) {
+    put(MECHANIC, -2.45, -30.0, false, FO("nervous", 0.4 + idle * 0.25, { look: 0.5, headTilt: -2 }));
+    put(FOREMAN, -1.35, -30.4, false, FO("stern", 0.4 + idle * 0.25, { look: -0.3 }));
+  }
+  if (id === 20) {
+    put(MECHANIC, -2.5, -30.0, false, FO("whistle", 0.2 + idle * 0.2, { look: 0.9, headTilt: -9 }));
+    put(FOREMAN, -1.35, -30.5, false, FO("whistle", 0.5 + idle * 0.2, { look: 0.9, headTilt: -9 }));
+  }
+
+  // L11: CTA, waving the aircraft off
   if (id === 24 || id === 25) {
     put(MECHANIC, -2.45, -30.0, false, FO("grin", 0.2 + idle * 0.2, { wave: 0.55 + 0.45 * idle }));
     put(INSPECT, -1.35, -30.5, false, FO("grin", 0.9 + idle * 0.2, { wave: 0.55 + 0.45 * idle }));
