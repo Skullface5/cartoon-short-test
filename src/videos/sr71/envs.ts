@@ -316,6 +316,57 @@ const blobGeom = (rad: number, seed: number, squash = 0.8) => {
 // ===============================================================================================================
 // 1. dusk apron: concrete slabs, hangar silhouettes, sodium work lights, heat haze off the ramp
 // ===============================================================================================================
+/**
+ * One SR-71 model, used by BOTH the hangar and the altitude scene. Hand-building a second aircraft
+ * for the sky is how the altitude shots ended up with floating, disconnected parts: a cylinder
+ * rotated 90 deg about X has its LENGTH on local Y, so squashing scale.y shortens the fuselage
+ * instead of flattening it, and nose/tail stop meeting the body. Reuse this one.
+ */
+const buildBlackbird = (o: { body?: string; dark?: string; textured?: boolean } = {}) => {
+  const body = o.body ?? "#c8ccd2";
+  const darkCol = o.dark ?? "#14161a";
+  const jetT = o.textured === false ? null : titaniumTex(43, true);
+  if (jetT) jetT.repeat.set(3, 1);
+  const jetM = metal(body, jetT ? { map: jetT, roughness: 0.85, metalness: 0.3 } : { roughness: 0.9, metalness: 0.2 });
+  const jetDark = matte(darkCol, { roughness: 0.9, metalness: 0.2 });
+  const glassM = metal("#37414f", { roughness: 0.14, metalness: 0.95 });
+  const parked = new THREE.Group();
+  const fus = cyl(1.18, 1.55, 26, 10, jetM); fus.rotation.x = Math.PI / 2; fus.position.y = 2.6; parked.add(fus);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(1.18, 4.6, 10), jetM);
+  nose.rotation.x = -Math.PI / 2; nose.position.set(0, 2.6, -15.3); parked.add(nose);
+  const pitot = cyl(0.05, 0.05, 2.2, 5, jetDark); pitot.rotation.x = Math.PI / 2; pitot.position.set(0, 2.6, -18.4); parked.add(pitot);
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), glassM);
+  canopy.scale.set(0.78, 0.5, 2.3); canopy.position.set(0, 3.66, -6.6); parked.add(canopy);
+  const canopyRail = box(0.22, 0.16, 3.6, jetDark); canopyRail.position.set(0, 3.95, -6.4); parked.add(canopyRail);
+  for (const sg of [-1, 1]) {
+    const chine = box(0.46, 0.11, 21, jetDark);
+    chine.position.set(sg * 1.5, 2.45, -1);
+    parked.add(chine);
+  }
+  for (const sg of [-1, 1]) {
+    const wing = box(14.5, 0.3, 4.4, jetM);
+    wing.position.set(sg * 7.4, 2.15, 1.2);
+    wing.rotation.z = -sg * 0.05; wing.rotation.y = -sg * 0.22;
+    parked.add(wing);
+    const seam = box(13.2, 0.05, 0.14, jetDark);
+    seam.position.set(sg * 7.4, 2.32, 3.05); seam.rotation.y = -sg * 0.22;
+    parked.add(seam);
+  }
+  for (const sg of [-1, 1]) {
+    const nac = cyl(0.74, 0.62, 7.6, 12, jetM);
+    nac.rotation.x = Math.PI / 2; nac.position.set(sg * 3.05, 1.9, 1.4);
+    parked.add(nac);
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.7, 9), jetDark);
+    cone.rotation.x = -Math.PI / 2; cone.position.set(sg * 3.05, 1.9, -2.8); parked.add(cone);
+    const intake = new THREE.Mesh(new THREE.CircleGeometry(0.7, 12), matte("#0a0b0e"));
+    intake.rotation.y = Math.PI; intake.position.set(sg * 3.05, 1.9, -2.35); parked.add(intake);
+  }
+  const fin = box(0.3, 4.2, 3.0, jetM); fin.position.set(0, 4.8, 9.4); fin.rotation.x = -0.25; parked.add(fin);
+  const finLE = box(0.34, 4.3, 0.22, jetDark); finLE.position.set(0, 4.85, 7.95); finLE.rotation.x = -0.68; parked.add(finLE);
+  const tail = box(7.4, 0.24, 2.2, jetM); tail.position.set(0, 3.0, 10.6); parked.add(tail);
+  return parked;
+};
+
 export function hangarApron(): Env {
   const group = new THREE.Group();
   group.add(skyDome(420));
@@ -463,52 +514,7 @@ export function hangarApron(): Env {
   };
   for (let i = 0; i < 5; i++) group.add(cone(-5.6 + i * 0.9, 8.4 - i * 0.5));
 
-  // ---- a parked aircraft far off: black, but with the hardware that makes it read as a jet — canopy,
-  // engine nacelles, panel lines in the skin — so it is not a smear on the hangar ----
-  const jetT = titaniumTex(43, true);
-  jetT.repeat.set(3, 1);
-  const jetM = metal("#c8ccd2", { map: jetT, roughness: 0.85, metalness: 0.3 });
-  const jetDark = matte("#14161a", { roughness: 0.9, metalness: 0.2 });
-  const glassM = metal("#37414f", { roughness: 0.14, metalness: 0.95 });
-  const parked = new THREE.Group();
-  const fus = cyl(1.18, 1.55, 26, 10, jetM); fus.rotation.x = Math.PI / 2; fus.position.y = 2.6; parked.add(fus);
-  const nose = new THREE.Mesh(new THREE.ConeGeometry(1.18, 4.6, 10), jetM);
-  nose.rotation.x = -Math.PI / 2; nose.position.set(0, 2.6, -15.3); parked.add(nose);
-  const pitot = cyl(0.05, 0.05, 2.2, 5, jetDark); pitot.rotation.x = Math.PI / 2; pitot.position.set(0, 2.6, -18.4); parked.add(pitot);
-  // canopy: a long low bubble on the forward fuselage
-  const canopy = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), glassM);
-  canopy.scale.set(0.78, 0.5, 2.3); canopy.position.set(0, 3.66, -6.6); parked.add(canopy);
-  const canopyRail = box(0.22, 0.16, 3.6, jetDark); canopyRail.position.set(0, 3.95, -6.4); parked.add(canopyRail);
-  // chines down the fuselage sides
-  for (const s of [-1, 1]) {
-    const chine = box(0.46, 0.11, 21, jetDark);
-    chine.position.set(s * 1.5, 2.45, -1);
-    parked.add(chine);
-  }
-  // wings with a control-surface seam on top
-  for (const s of [-1, 1]) {
-    const wing = box(14.5, 0.3, 4.4, jetM);
-    wing.position.set(s * 7.4, 2.15, 1.2);
-    wing.rotation.z = -s * 0.05; wing.rotation.y = -s * 0.22;
-    parked.add(wing);
-    const seam = box(13.2, 0.05, 0.14, jetDark);
-    seam.position.set(s * 7.4, 2.32, 3.05); seam.rotation.y = -s * 0.22;
-    parked.add(seam);
-  }
-  // engine nacelles half-sunk in the wing roots, with inlet cones and dark intakes
-  for (const s of [-1, 1]) {
-    const nac = cyl(0.74, 0.62, 7.6, 12, jetM);
-    nac.rotation.x = Math.PI / 2; nac.position.set(s * 3.05, 1.9, 1.4);
-    parked.add(nac);
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.7, 9), jetDark);
-    cone.rotation.x = -Math.PI / 2; cone.position.set(s * 3.05, 1.9, -2.8); parked.add(cone);
-    const intake = new THREE.Mesh(new THREE.CircleGeometry(0.7, 12), matte("#0a0b0e"));
-    intake.rotation.y = Math.PI; intake.position.set(s * 3.05, 1.9, -2.35); parked.add(intake);
-  }
-  // fin with a dark leading edge, and the tailplane
-  const fin = box(0.3, 4.2, 3.0, jetM); fin.position.set(0, 4.8, 9.4); fin.rotation.x = -0.25; parked.add(fin);
-  const finLE = box(0.34, 4.3, 0.22, jetDark); finLE.position.set(0, 4.85, 7.95); finLE.rotation.x = -0.68; parked.add(finLE);
-  const tail = box(7.4, 0.24, 2.2, jetM); tail.position.set(0, 3.0, 10.6); parked.add(tail);
+  const parked = buildBlackbird();
   parked.position.set(13, 0, -118);
   parked.rotation.y = 0.78;
   group.add(parked);
@@ -846,6 +852,13 @@ export function altitudeSky(): Env {
   wg.setIndex(idx);
   wg.computeVertexNormals();
   group.add(new THREE.Mesh(wg, wingM));
+
+  // The shared SR-71 model, dropped onto the delta wing so the sky shots show a real aircraft
+  // instead of a bare wing. Centreline (local y=2.6) is shifted down to sit on the wing plane.
+  const air = buildBlackbird({ body: "#15171c", dark: "#0d0f13", textured: false });
+  air.position.set(1.0, -4.35, -0.6);
+  air.scale.setScalar(1.25);
+  group.add(air);
 
   const yTop = (x: number) => y0 + (y1 - y0) * (x / span) + (th0 + (th1 - th0) * (x / span)) / 2;
   const leLen = Math.hypot(span, tipLE - rootLE);

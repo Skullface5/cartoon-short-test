@@ -32,25 +32,30 @@ const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const S = (t0: number, t1: number, env: EnvId, a: Cam, b: Cam): Shot => ({ t0, t1, env, a, b });
 
 export const SHOTS: Shot[] = [
-  // L0 (0.55) HOOK - macro seam, bead of fuel
-  S(0.0, 2.4, "panelMacro", { pos: [0, 1.0, 3.2], look: [0, 1.0, 0], fov: 30 }, { pos: [0, 1.0, 2.4], look: [0, 1.0, 0], fov: 28 }),
-  S(2.4, 4.331, "panelMacro", { pos: [0.5, 1.15, 2.6], look: [0, 1.0, 0], fov: 30 }, { pos: [0.2, 1.05, 3.4], look: [0, 1.0, 0], fov: 34 }),
+  // ---- panel macro. The seam is a horizontal line at y=0, 3.4 m wide, plates 1.7 m tall.
+  // At vFOV 30 the visible width is 0.344*d, so the camera must sit ~5 m back to frame the seam;
+  // closer than ~2.5 m and the metal fills the frame and reads as a flat void.
+  // L0 (0.55) HOOK
+  S(0.0, 2.4, "panelMacro", { pos: [0, 0.9, 5.6], look: [0, 0.05, 0], fov: 30 }, { pos: [0, 0.7, 4.6], look: [0, 0.05, 0], fov: 30 }),
+  S(2.4, 4.331, "panelMacro", { pos: [0.9, 0.5, 4.8], look: [0, 0.0, 0], fov: 31 }, { pos: [0.3, 0.35, 5.8], look: [0, 0.0, 0], fov: 33 }),
   // L1 (4.331) the ramp, crew
   S(4.331, 8.0, "rampDeck", { pos: [2.0, 1.75, 9.0], look: [0, 1.3, 3.0], fov: 36 }, { pos: [0.7, 1.65, 8.6], look: [0, 1.3, 3.0], fov: 34 }),
   S(8.0, 11.502, "rampDeck", { pos: [-1.6, 1.55, 8.4], look: [0, 1.3, 3.0], fov: 36 }, { pos: [-0.6, 1.55, 8.6], look: [0, 1.3, 3.0], fov: 34 }),
   // L2 (11.502) new mechanic vs foreman
   S(11.502, 15.0, "rampDeck", { pos: [0.3, 1.6, 7.5], look: [0, 1.25, 1.5], fov: 34 }, { pos: [0.5, 1.55, 7.1], look: [0, 1.25, 1.5], fov: 34 }),
   S(15.0, 18.643, "rampDeck", { pos: [0.5, 1.55, 7.1], look: [0, 1.25, 1.5], fov: 34 }, { pos: [0.1, 1.5, 6.9], look: [0, 1.25, 1.5], fov: 34 }),
-  // L3 (18.643) Mach 3.2
-  S(18.643, 21.7, "altitudeSky", { pos: [0, 1.2, 6.0], look: [0, 1.0, 0], fov: 40 }, { pos: [0, 1.15, 4.2], look: [0, 1.0, 0], fov: 38 }),
-  S(21.7, 24.774, "altitudeSky", { pos: [1.6, 1.1, 5.0], look: [0, 1.0, 0], fov: 42 }, { pos: [2.6, 1.05, 6.2], look: [0, 1.0, 0], fov: 40 }),
-  // L4 (24.774) titanium grows
-  S(24.774, 27.7, "altitudeSky", { pos: [0, 1.0, 7.5], look: [0, 1.0, 0], fov: 36 }, { pos: [0, 1.0, 5.6], look: [0, 1.0, 0], fov: 34 }),
-  S(27.7, 30.705, "altitudeSky", { pos: [-1.0, 1.1, 5.2], look: [0, 1.0, 0], fov: 38 }, { pos: [-1.8, 1.05, 4.4], look: [0, 1.0, 0], fov: 36 }),
-  // L5 (30.705, 10.2s) fitted tight - it tears: three shots so it never sits still
-  S(30.705, 34.3, "panelMacro", { pos: [0, 1.1, 2.2], look: [0, 1.0, 0], fov: 32 }, { pos: [0, 1.05, 1.5], look: [0, 1.0, 0], fov: 30 }),
-  S(34.3, 37.8, "panelMacro", { pos: [0.8, 1.3, 1.6], look: [0, 1.0, 0], fov: 34 }, { pos: [0.3, 1.1, 2.4], look: [0, 1.0, 0], fov: 36 }),
-  S(37.8, 41.406, "altitudeSky", { pos: [0.5, 1.15, 4.6], look: [0, 1.0, 0], fov: 36 }, { pos: [-0.5, 1.05, 5.6], look: [0, 1.0, 0], fov: 38 }),
+  // ---- altitude. The wing is a delta at y ~= -1.65, root x=0 z=-3..4.8, tip x=26 z=9.5..12.8.
+  // Aim at the wing centroid [13, -1.7, 5]; looking at y=+1 points straight over the top of it.
+  // L3 (18.643) Mach 3.2 - under the wing, cloud sea behind
+  S(18.643, 21.7, "altitudeSky", { pos: [40, 13, -51], look: [10, -1, -6], fov: 34 }, { pos: [44, 12, -46], look: [10, -1, -6], fov: 34 }),
+  S(21.7, 24.774, "altitudeSky", { pos: [31, 4, -29], look: [8, -1.2, -6], fov: 36 }, { pos: [35, 5, -25], look: [8, -1.2, -6], fov: 36 }),
+  // L4 (24.774) titanium grows - skimming the wing surface
+  S(24.774, 27.7, "altitudeSky", { pos: [37, 11, -50], look: [9, -1, -6], fov: 34 }, { pos: [41, 10, -45], look: [9, -1, -6], fov: 34 }),
+  S(27.7, 30.705, "altitudeSky", { pos: [-12, -17, -33], look: [10, -1, -6], fov: 36 }, { pos: [-4, -15, -28], look: [10, -1, -6], fov: 34 }),
+  // L5 (30.705, 10.2s) fitted tight - it tears
+  S(30.705, 34.3, "panelMacro", { pos: [0, 0.6, 4.4], look: [0, 0.0, 0], fov: 32 }, { pos: [0.4, 0.3, 3.4], look: [0, 0.0, 0], fov: 32 }),
+  S(34.3, 37.8, "panelMacro", { pos: [1.6, 0.9, 4.0], look: [0, 0.0, 0], fov: 34 }, { pos: [0.5, 0.4, 4.9], look: [0, 0.0, 0], fov: 35 }),
+  S(37.8, 41.406, "altitudeSky", { pos: [35, 6, 27], look: [9, -1.2, -6], fov: 36 }, { pos: [39, 7, 32], look: [9, -1.2, -6], fov: 34 }),
   // L6 (41.406) every seam left loose
   S(41.406, 43.8, "hangarApron", { pos: [1.2, 1.65, 8.4], look: [0, 1.25, 2.4], fov: 36 }, { pos: [0.4, 1.55, 8.0], look: [0, 1.25, 2.4], fov: 34 }),
   S(43.8, 46.195, "hangarApron", { pos: [0.4, 1.55, 8.0], look: [0, 1.25, 2.4], fov: 34 }, { pos: [0.0, 1.5, 8.0], look: [0, 1.25, 2.4], fov: 34 }),
@@ -59,14 +64,14 @@ export const SHOTS: Shot[] = [
   S(48.9, 51.646, "rampDeck", { pos: [1.6, 0.7, 4.0], look: [0, 0.5, 1.4], fov: 40 }, { pos: [0.8, 0.65, 3.6], look: [0, 0.5, 1.4], fov: 38 }),
   // L8 (51.646) the match cut
   S(51.646, 54.9, "rampDeck", { pos: [0, 1.1, 5.2], look: [0, 0.9, 1.4], fov: 34 }, { pos: [0, 1.05, 4.8], look: [0, 0.9, 1.4], fov: 32 }),
-  S(54.9, 58.337, "altitudeSky", { pos: [0, 1.1, 5.2], look: [0, 0.9, 1.4], fov: 34 }, { pos: [0, 1.05, 4.8], look: [0, 0.9, 1.4], fov: 32 }),
-  // L9 (58.337, 8.6s) the payoff
-  S(58.337, 61.3, "altitudeSky", { pos: [0, 1.6, 9.0], look: [0, 1.3, 0], fov: 38 }, { pos: [0, 1.8, 12.0], look: [0, 1.3, 0], fov: 36 }),
-  S(61.3, 64.3, "altitudeSky", { pos: [0, 2.0, 15.0], look: [0, 1.4, 0], fov: 34 }, { pos: [0, 2.2, 19.0], look: [0, 1.5, 0], fov: 32 }),
-  S(64.3, 67.376, "altitudeSky", { pos: [-1.2, 2.1, 17.0], look: [0, 1.45, 0], fov: 34 }, { pos: [1.0, 2.1, 15.5], look: [0, 1.45, 0], fov: 33 }),
+  S(54.9, 58.337, "altitudeSky", { pos: [32, -11, -19], look: [9, -1.4, -6], fov: 36 }, { pos: [27, -10, -15], look: [9, -1.4, -6], fov: 34 }),
+  // L9 (58.337, 8.6s) the payoff - pull back and reveal the whole delta
+  S(58.337, 61.3, "altitudeSky", { pos: [43, 14, 118], look: [10, -1, -6], fov: 38 }, { pos: [46, 16, 124], look: [10, -1, -6], fov: 38 }),
+  S(61.3, 64.3, "altitudeSky", { pos: [40, 20, 110], look: [10, -1, -6], fov: 38 }, { pos: [37, 18, 103], look: [10, -1, -6], fov: 38 }),
+  S(64.3, 67.376, "altitudeSky", { pos: [26, 41, 83], look: [10, -1, -6], fov: 34 }, { pos: [29, 38, 78], look: [10, -1, -6], fov: 34 }),
   // L10 (67.376) the kicker
-  S(67.376, 70.4, "panelMacro", { pos: [0, 1.0, 3.0], look: [0, 1.0, 0], fov: 30 }, { pos: [0, 1.0, 2.5], look: [0, 1.0, 0], fov: 29 }),
-  S(70.4, 73.427, "panelMacro", { pos: [0.6, 1.1, 2.2], look: [0, 1.0, 0], fov: 32 }, { pos: [-0.3, 1.05, 2.8], look: [0, 1.0, 0], fov: 33 }),
+  S(67.376, 70.4, "panelMacro", { pos: [0, 1.0, 6.0], look: [0, 0.05, 0], fov: 30 }, { pos: [0, 0.8, 5.0], look: [0, 0.05, 0], fov: 29 }),
+  S(70.4, 73.427, "panelMacro", { pos: [1.2, 0.5, 5.2], look: [0, 0.0, 0], fov: 32 }, { pos: [-0.5, 0.4, 6.0], look: [0, 0.0, 0], fov: 33 }),
   // L11 (73.427) CTA
   S(73.427, 75.7, "hangarApron", { pos: [0.9, 1.65, 7.4], look: [0, 1.3, 1.6], fov: 34 }, { pos: [0.3, 1.6, 7.2], look: [0, 1.3, 1.6], fov: 34 }),
   S(75.7, TOTAL + 0.1, "hangarApron", { pos: [0.3, 1.6, 7.2], look: [0, 1.3, 1.6], fov: 34 }, { pos: [0.0, 1.55, 7.0], look: [0, 1.3, 1.6], fov: 33 }),
