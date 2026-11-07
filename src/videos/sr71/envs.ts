@@ -977,6 +977,16 @@ export function altitudeSky(): Env {
 export function panelMacro(): Env {
   const group = new THREE.Group();
 
+  // Scene-local fill. The shared 3-point rig puts the key BEHIND the skin, so the camera-facing side
+  // of the plates only catches the 0.7 cool light and the toon ramp snaps it to its darkest band.
+  // Lights added to a group are only collected while that group is visible, so this affects this
+  // shot alone.
+  const fillWarm = new THREE.DirectionalLight("#ffe0b8", 1.6);
+  fillWarm.position.set(0.6, 1.6, 6);
+  const fillCool = new THREE.DirectionalLight("#9fb6d8", 0.7);
+  fillCool.position.set(-3.2, 0.4, 4.5);
+  group.add(fillWarm, fillCool);
+
   const set = new THREE.Group();
   set.rotation.x = -0.2; // top of the skin leans away: the seam plane tilts up toward the lens
   group.add(set);
@@ -992,7 +1002,13 @@ export function panelMacro(): Env {
   // ---- the two skins: subtly dished so the flat-shaded facets take the key light ----
   const plateT = titaniumTex(61, false);
   plateT.repeat.set(2.2, 1.1);
-  const skinM = metal("#ffffff", { map: plateT, roughness: 0.78, metalness: 0.42 });
+  // A toon material x a dark titanium map lands in the ramp's lowest band no matter how it is lit,
+  // which is why the macro shots read as an empty black card. At this scale the plates need to
+  // actually shade, so they use a standard material at a mid-grey base; the ink edges keep the
+  // graphic unity with the cel-shaded scenes.
+  const skinM = new THREE.MeshStandardMaterial({
+    color: "#9299a2", map: plateT, roughness: 0.58, metalness: 0.12, flatShading: true,
+  });
   const plate = (w: number, h: number, seed: number) => {
     const g = new THREE.BoxGeometry(w, h, TH, 14, 8, 1);
     const p = g.attributes.position as THREE.BufferAttribute;
