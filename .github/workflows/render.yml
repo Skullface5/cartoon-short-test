@@ -13,7 +13,7 @@ on:
 # A public repo gets 20 concurrent jobs, so 20 chunks is the widest useful fan-out.
 # Rendering happens HERE, never on the laptop (a local render pins the CPU at its 85 C limit).
 env:
-  TOTAL_FRAMES: 2338
+  TOTAL_FRAMES: 1626
   CHUNKS: 20
   COMP: Sr71Short
 
